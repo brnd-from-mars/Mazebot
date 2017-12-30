@@ -20,4 +20,14 @@ struct Motor {
     uint8_t pwm;
 } motor[4];
 
+void motorInit();
+
+void motorSetSpeed(uint8_t motor, int16_t speed);
+
+void motorSetLeftSpeed(int16_t speed);
+
+void motorSetRightSpeed(int16_t speed);
+
+void motorBrake();
+
 #endif
