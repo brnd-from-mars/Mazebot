@@ -1,4 +1,4 @@
-#include "motot.h"
+#include "motor.h"
 
 
 struct Motor motor[4];
