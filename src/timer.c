@@ -1,6 +1,8 @@
 #include "timer.h"
 
 
+uint8_t loopCnt;
+
 void timerInit() {
     //deactivate all interrupts
     cli();
@@ -16,13 +18,25 @@ void timerInit() {
     // set interrupt
     TIMSK5 = (1<<OCIE5A);
     // interval 1ms
-    OCR5AH = (char) (100>>8);
-    OCR5AL = (char) (100);
+    OCR5AH = (char) (0x80>>8);
+    OCR5AL = (char) (0x80);
     // activate all interrupts
 	sei();
+    loopCnt = 0;
 }
 
 // timer interrupt
 ISR( TIMER5_COMPA_vect ) {
-    
+    loopCnt++;
+    switch(loopCnt) {
+    case 10:
+        blackPrepare();
+        break;
+    case 20:
+        blackMeasure();
+        break;
+    case 50:
+        loopCnt = 0;
+        break;
+    }
 }

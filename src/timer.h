@@ -2,7 +2,10 @@
 #define TIMER_H_
 
 #include <Arduino.h>
+#include "black.h"
 
+
+uint8_t loopCnt;
 
 void timerInit();
 

@@ -5,8 +5,8 @@ struct RGB rgb[1];
 
 void rgbInit() {
     rgb[0].pinR = 8;
-    rgb[0].pinR = 9;
-    rgb[0].pinR = 10;
+    rgb[0].pinG = 9;
+    rgb[0].pinB = 10;
 
     for(uint8_t i=0; i<1; i++) {
         pinMode(rgb[i].pinR, OUTPUT);
