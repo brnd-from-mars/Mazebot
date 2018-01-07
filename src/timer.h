@@ -2,6 +2,7 @@
 #define TIMER_H_
 
 #include <Arduino.h>
+#include "analog.h"
 #include "black.h"
 
 
