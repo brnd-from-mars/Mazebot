@@ -1,7 +1,5 @@
 {
     "terminal.integrated.env.osx": {
-        "PATH": "/Users/bberg/.platformio/penv/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/share/dotnet:/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-    },
-    "C_Cpp.errorSquiggles": "Disabled",
-    "C_Cpp.intelliSenseEngineFallback": "Disabled"
+        "PATH": "/Users/bberg/.platformio/penv/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/share/dotnet:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+    }
 }

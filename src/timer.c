@@ -24,5 +24,5 @@ void timerInit() {
 
 // timer interrupt
 ISR( TIMER5_COMPA_vect ) {
-    Serial.println(millis())
+    
 }

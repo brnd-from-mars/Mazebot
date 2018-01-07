@@ -7,7 +7,7 @@ void blackInit() {
     pinMode(A9, INPUT); // right
     pinMode(A10, INPUT); // left
     pinMode(24, OUTPUT);
-    digitalWrite(24, LOW)
+    digitalWrite(24, LOW);
 
     darknessLeft = 0;
     darknessRight = 0;

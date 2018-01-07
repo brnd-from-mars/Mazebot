@@ -27,7 +27,7 @@ void motorInit() {
     }
 }
 
-void motorSetSpeed(uint8_t motor, int16_t speed) {
+void motorSetSpeed(uint8_t i, int16_t speed) {
     uint8_t pwm = min(255, abs(speed));
 
     analogWrite(motor[i].pwm, pwm);
