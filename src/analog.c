@@ -25,6 +25,11 @@ void analogInit() {
 }
 
 void analogInterrupt() {
+    int sum = 0;
+    for(uint8_t i=0; i<3; i++) {
+        sum += analogRead(sharp[nextSharp].pin);
+    }
+    sharp[nextSharp].value = trunc(sum/3);
     sharp[nextSharp].value = analogRead(sharp[nextSharp].pin);
     if(nextSharp == 8) {
         nextSharp = 0;

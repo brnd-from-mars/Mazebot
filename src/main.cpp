@@ -4,6 +4,7 @@ extern "C" {
 #endif
 #include "analog.h"
 #include "black.h"
+#include "encoder.h"
 #include "melexis.h"
 #include "motor.h"
 #include "rgb.h"
@@ -18,6 +19,7 @@ void setup() {
     // init everything
     analogInit();
     blackInit();
+    encoderInit();
     melexisInit();
     motorInit();
     rgbInit();
