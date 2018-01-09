@@ -4,6 +4,7 @@ extern "C" {
 #endif
 #include "analog.h"
 #include "black.h"
+#include "melexis.h"
 #include "motor.h"
 #include "rgb.h"
 #include "timer.h"
@@ -17,10 +18,11 @@ void setup() {
     // init everything
     analogInit();
     blackInit();
+    melexisInit();
     motorInit();
     rgbInit();
     timerInit();
-    // make sure all sensors got read out at least once 
+    // safty time
     rgbSet(32, 0, 0, 0);
     delay(200);
     rgbSet(0, 32, 0, 0);
