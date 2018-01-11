@@ -29,6 +29,7 @@ void timerInit() {
 ISR( TIMER5_COMPA_vect ) {
     loopCnt++;
     analogInterrupt();
+    switchInterrupt();
     switch(loopCnt) {
     case 10:
         blackPrepare();

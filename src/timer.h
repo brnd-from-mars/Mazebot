@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "analog.h"
 #include "black.h"
+#include "switch.h"
 
 
 uint8_t loopCnt;
