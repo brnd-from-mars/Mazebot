@@ -8,8 +8,6 @@
 #include "rgb.h"
 
 
-void driveInit();
-
 bool entireWall(uint8_t dir, uint16_t maxDistance);
 
 void driveReset();
