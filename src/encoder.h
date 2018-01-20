@@ -23,7 +23,7 @@ struct Encoder {
     uint8_t pin1;
     uint8_t pin2;
     bool forward;
-    long value;
+    int value;
 } encoder[4];
 
 void encoderReset();

@@ -25,6 +25,7 @@ void setup() {
     encoderInit();
     melexisInit();
     motorInit();
+    navigationInit();
     rgbInit();
     switchInit();
     timerInit();
@@ -40,6 +41,5 @@ void loop() {
     } else {
         rgbSet(128, 0, 0, 0);
         motorBrake();
-        rgbOff(0);
     }
 }

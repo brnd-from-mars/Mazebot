@@ -14,5 +14,7 @@ void driveReset();
 
 void drive(int16_t baseSpeed, float kP, float kI, float kD);
 
+void rotate(int16_t speed);
+
 
 #endif

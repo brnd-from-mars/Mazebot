@@ -1,22 +1,26 @@
 #include "navigation.h"
 
 
-int8_t rotateState=-1;
+int8_t rotateState;
 
-int8_t forwardState=-1;
+int8_t forwardState;
 
-bool blockRotateRight=false;
+bool blockRotateRight;
 
-int targetEncValueRotation=0;
+int targetEncValueRotation;
 
-int targetEncValueForward=0;
+int targetEncValueForward;
+
+void navigationInit() {
+    rotateState = -1;
+    forwardState = -1;
+    blockRotateRight = false;
+}
 
 void navigationRightWall() {
     if(rotateState != -1) {
-        rgbSet(0, 64, 0, 0);
         processRotate();
     } else if (forwardState != -1) {
-        rgbSet(0, 0, 64, 0);
         processForward();
     } else {
         if(!entireWall(RIGHT, 150) && !blockRotateRight) {
@@ -28,8 +32,10 @@ void navigationRightWall() {
             } else {
                 startRotate(-90);
             }
+            blockRotateRight = false;
         } else {
             startForward(30);
+            blockRotateRight = false;
         }
     }
 }
@@ -38,21 +44,21 @@ void startRotate(int angle) {
     switch(angle) {
     case 90:
         rotateState = 0;
-        targetEncValueRotation = 30;
+        targetEncValueRotation = 75;
         break;
     case -90:
         rotateState = 0;
-        targetEncValueRotation = -30;
+        targetEncValueRotation = -75;
         break;
     case -180:
         rotateState = 0;
-        targetEncValueRotation = -60;
+        targetEncValueRotation = -150;
         break;
     }
 }
 
 void startForward(int distance) {
-    targetEncValueForward = distance / 30 * 40;
+    targetEncValueForward = (int)(distance*4.5);
     forwardState = 0;
 }
 
@@ -71,13 +77,10 @@ void processRotate() {
         break;
     // performing rotation
     case 1:
-        if(abs(encoder[1].value) +
-           abs(encoder[2].value) +
-           abs(encoder[3].value) +
-           abs(encoder[4].value) >= 4*abs(targetEncValueRotation)) {
+        if(distanceCoveredEnc() >= abs(targetEncValueRotation)) {
             rotateState = 2;
         } else {
-            rotate(SIGNUM(targetEncValueRotation) * 50);
+            rotate((uint16_t)(SIGNUM(targetEncValueRotation)*100));
         }
         break;
     // completed full rotation
@@ -85,6 +88,7 @@ void processRotate() {
         motorBrake();
         rotateState = -1;
         targetEncValueRotation = 0;
+        delay(300);
         break;
     }
 }
@@ -104,13 +108,27 @@ void processForward() {
         break;
     // performing forward drive
     case 1:
-        if(abs(encoder[0].value) +
-           abs(encoder[1].value) +
-           abs(encoder[2].value) +
-           abs(encoder[3].value) >= abs(targetEncValueForward)) {
-            rotateState = 2;
+        if(distanceCoveredEnc() >= abs(targetEncValueForward)) {
+            forwardState = 2;
         } else {
             drive(100, 0.5, 0.02, 1.0);
         }
+        break;
+    // completed forward drive
+    case 2:
+        motorBrake();
+        forwardState = -1;
+        targetEncValueForward = 0;
+        driveReset();
+        delay(300);
+        break;
     }
+}
+
+int distanceCoveredEnc() {
+    int avg;
+    for(uint8_t i=0; i<4; i++) {
+        avg += abs(encoder[0].value);
+    }
+    return round(avg/4);
 }
