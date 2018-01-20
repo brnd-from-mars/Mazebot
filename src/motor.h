@@ -23,6 +23,7 @@ struct Motor {
     uint8_t pin1;
     uint8_t pin2;
     uint8_t pwm;
+    double factor;
 } motor[4];
 
 void motorInit();

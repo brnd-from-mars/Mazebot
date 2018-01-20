@@ -78,6 +78,7 @@ void processRotate() {
     // performing rotation
     case 1:
         if(distanceCoveredEnc() >= abs(targetEncValueRotation)) {
+            correctRotationPosition(true);
             rotateState = 2;
         } else {
             rotate((uint16_t)(SIGNUM(targetEncValueRotation)*100));
@@ -85,9 +86,10 @@ void processRotate() {
         break;
     // completed full rotation
     case 2:
-        motorBrake();
-        rotateState = -1;
-        targetEncValueRotation = 0;
+        if(!correctRotationPosition(false)) {
+            targetEncValueRotation = 0;
+            rotateState = -1;
+        }
         delay(300);
         break;
     }
@@ -109,6 +111,8 @@ void processForward() {
     // performing forward drive
     case 1:
         if(distanceCoveredEnc() >= abs(targetEncValueForward)) {
+            driveReset();
+            correctRotationPosition(true);
             forwardState = 2;
         } else {
             drive(100, 0.5, 0.02, 1.0);
@@ -116,10 +120,10 @@ void processForward() {
         break;
     // completed forward drive
     case 2:
-        motorBrake();
-        forwardState = -1;
-        targetEncValueForward = 0;
-        driveReset();
+        if(!correctRotationPosition(false)) {
+            targetEncValueForward = 0;
+            forwardState = -1;
+        }
         delay(300);
         break;
     }

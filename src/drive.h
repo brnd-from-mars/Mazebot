@@ -8,6 +8,7 @@
 #include "rgb.h"
 
 
+
 bool entireWall(uint8_t dir, uint16_t maxDistance);
 
 void driveReset();
@@ -15,6 +16,8 @@ void driveReset();
 void drive(int16_t baseSpeed, float kP, float kI, float kD);
 
 void rotate(int16_t speed);
+
+bool correctRotationPosition(bool start);
 
 
 #endif

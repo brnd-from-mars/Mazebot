@@ -26,13 +26,15 @@ void analogInit() {
 
 void analogInterrupt() {
     int sum = 3;
-    for(uint8_t i=0; i<3; i++) {
+
+    for(uint8_t i=0; i<3; i++)
         sum += trunc(analogRead(sharp[nextSharp].pin)/3);
-    }
-    sharp[nextSharp].value = (int16_t)(sum);
-    if(nextSharp == 8) {
+
+    if(sum > 10 && sum < 600)
+        sharp[nextSharp].value = (int16_t)(sum);
+
+    if(nextSharp == 8)
         nextSharp = 0;
-    } else {
+    else
         nextSharp++;
-    }
 }

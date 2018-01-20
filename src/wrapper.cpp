@@ -2,11 +2,13 @@
 
 
 extern "C" void serialPrintTime() {
-    Serial.println(millis());
+    Serial.print(millis());
+    Serial.print(" ");
 }
 
 extern "C" void serialPrintInt(int number) {
-    Serial.println(number);
+    Serial.print(number);
+    Serial.print(" ");
 }
 
 extern "C" void serialPrintNL() {
