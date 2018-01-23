@@ -3,7 +3,7 @@
 
 uint8_t loopCnt;
 
-void timerInit() {
+void timerInit() {   //TEST
     //deactivate all interrupts
     cli();
     // reset timer settings
