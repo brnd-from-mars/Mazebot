@@ -33,14 +33,16 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
         targetWalldistance = trunc((sharp[3].value + sharp[5].value)/2);
     }
 
-    if(entireWall(RIGHT, 150)) {
+    if(entireWall(RIGHT, 200)) {
         errorP = targetWalldistance - (int)(sharp[3].value);
         errorI = errorI + errorP;
         errorD = sharp[5].value - sharp[3].value;
-    } else if(entireWall(LEFT, 150)) {
+    } else if(entireWall(LEFT, 200)) {
         errorP = -(targetWalldistance - (int)(sharp[4].value));
         errorI = errorI + errorP;
         errorD = -(sharp[6].value - sharp[4].value);
+    } else {
+        errorI = 0;
     }
 
     motorSetLeftSpeed(baseSpeed + trunc(errorP * kP) + trunc(errorI * kI) + trunc(errorD * kD));
@@ -53,8 +55,11 @@ void rotate(int16_t speed) {
 }
 
 bool correctRotationPosition(bool start) {
+    uint16_t walllimit = 120;
+
     if(start) {
         correctionStart = millis();
+        rgbSet(0, 0, 32, 0);
         return true;
     } else {
         if(millis() < correctionStart+3000) {
@@ -64,21 +69,21 @@ bool correctRotationPosition(bool start) {
             int errorPos=0;
             uint8_t referenceWallsPos=0;
 
-            if(entireWall(RIGHT, 150)) {
+            if(entireWall(RIGHT, walllimit)) {
                 errorRot+=(sharp[5].value - sharp[3].value);
                 referenceWallsRot++;
             }
-            if(entireWall(BACK, 150)) {
+            if(entireWall(BACK, walllimit)) {
                 errorRot += (sharp[8].value - sharp[7].value);
                 referenceWallsRot++;
                 errorPos += -(240-(int)(trunc((sharp[7].value + sharp[8].value)/2)));
                 referenceWallsPos++;
             }
-            if(entireWall(LEFT, 150)) {
+            if(entireWall(LEFT, walllimit)) {
                 errorRot+=(sharp[4].value - sharp[6].value);
                 referenceWallsRot++;
             }
-            if(entireWall(FRONT, 150)) {
+            if(entireWall(FRONT, walllimit)) {
                 errorRot += (sharp[1].value -sharp[2].value);
                 referenceWallsRot++;
                 errorPos += (240-(int)(trunc((sharp[0].value + sharp[1].value + sharp[2].value)/3)));
@@ -87,6 +92,7 @@ bool correctRotationPosition(bool start) {
 
             if(referenceWallsPos==0 && referenceWallsRot==0) {
                 motorBrake();
+                rgbOff(0);
                 return false;
             }
 
@@ -105,6 +111,7 @@ bool correctRotationPosition(bool start) {
 
             if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
                 motorBrake();
+                rgbOff(0);
                 return false;
             }
 
@@ -114,6 +121,7 @@ bool correctRotationPosition(bool start) {
             return true;
         } else {
             motorBrake();
+            rgbOff(0);
             return false;
         }
     }

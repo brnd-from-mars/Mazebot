@@ -16,7 +16,6 @@ extern "C" {
 }
 #endif
 
-
 void setup() {
     Serial.begin(19200);
     // init everything
@@ -31,9 +30,11 @@ void setup() {
     timerInit();
     // safty time
     rgbSet(32, 0, 0, 0);
-    delay(200);
+    delay(400);
     rgbSet(0, 32, 0, 0);
 }
+
+long last=0;
 
 void loop() {
     if(toggleswitch[0].value) {

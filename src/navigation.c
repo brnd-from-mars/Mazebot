@@ -58,7 +58,7 @@ void startRotate(int angle) {
 }
 
 void startForward(int distance) {
-    targetEncValueForward = (int)(distance*4.5);
+    targetEncValueForward = (int)(distance*4.75);
     forwardState = 0;
 }
 
