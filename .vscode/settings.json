@@ -1,9 +1,0 @@
-{
-    "terminal.integrated.env.osx": {
-        "PATH": "/Users/bberg/.platformio/penv/bin:/Users/bberg/.platformio/penv:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/share/dotnet:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-    },
-    "files.associations": {
-        "twimaster.c": "c",
-        "melexis.h": "c"
-    }
-}
