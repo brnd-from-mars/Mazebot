@@ -9,18 +9,27 @@
  *
  *      ---------------------
  *      |                   |
- *      |  A4           A0  |
+ *      |  2             0  |
  *      |        /|\        |
  *      |       / | \       |
  *      |         |         |
  *      |         |         |
- *      |  A6           A2  |
+ *      |  3             1  |
  *      |                   |
  *      --------------------- 
  *        MELEXIS POSITIONS
  * 
  */
+struct Melexis {
+    uint8_t address;
+    float value;
+} melexis[4];
+
+uint8_t nextMelexis;
+
 void melexisInit();
+
+void melexisInterrupt();
 
 float melexisTemperature(uint8_t address);
 

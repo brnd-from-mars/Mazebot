@@ -33,8 +33,5 @@ void analogInterrupt() {
     if(sum > 10 && sum < 600)
         sharp[nextSharp].value = (int16_t)(sum);
 
-    if(nextSharp == 8)
-        nextSharp = 0;
-    else
-        nextSharp++;
+    nextSharp = (nextSharp==8 ? 0 : nextSharp+1);
 }

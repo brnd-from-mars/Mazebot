@@ -3,7 +3,7 @@
 
 uint8_t loopCnt;
 
-void timerInit() {   //TEST
+void timerInit() {
     //deactivate all interrupts
     cli();
     // reset timer settings
@@ -29,12 +29,13 @@ void timerInit() {   //TEST
 ISR( TIMER5_COMPA_vect ) {
     loopCnt++;
     analogInterrupt();
+    melexisInterrupt();
     switchInterrupt();
     switch(loopCnt) {
     case 10:
         blackPrepare();
         break;
-    case 20:
+    case 15:
         blackMeasure();
         break;
     case 50:

@@ -20,9 +20,6 @@ void switchInit() {
 
 void switchInterrupt() {
     toggleswitch[nextSwitch].value = digitalRead(toggleswitch[nextSwitch].pin);
-    if(nextSwitch == 2) {
-        nextSwitch = 0;
-    } else {
-        nextSwitch++;
-    }
+
+    nextSwitch = (nextSwitch==2 ? 0 : nextSwitch+1);
 }

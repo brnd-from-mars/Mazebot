@@ -1,10 +1,27 @@
 #include "melexis.h"
 
 
+struct Melexis melexis[4];
+
+uint8_t nextMelexis;
+
 void melexisInit() {
     pinMode(SDA, INPUT_PULLUP);
     pinMode(SCL, INPUT_PULLUP);
     i2c_init();
+
+    for(uint8_t i=0; i<4; i++) {
+        melexis[i].address = 0xA0 | (i<<1);
+        melexis[i].value = 0;
+    }
+
+    nextMelexis = 0;
+}
+
+void melexisInterrupt() {
+    melexis[nextMelexis].value = melexisTemperature(melexis[nextMelexis].address);
+
+    nextMelexis = (nextMelexis==3 ? 0 : nextMelexis+1);
 }
 
 float melexisTemperature(uint8_t address)

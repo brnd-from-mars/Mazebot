@@ -27,8 +27,8 @@ void setup() {
     navigationInit();
     rgbInit();
     switchInit();
+    // timer
     timerInit();
-    // safty time
     rgbSet(32, 0, 0, 0);
     delay(400);
     rgbSet(0, 32, 0, 0);

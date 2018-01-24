@@ -76,7 +76,7 @@ bool correctRotationPosition(bool start) {
             if(entireWall(BACK, walllimit)) {
                 errorRot += (sharp[8].value - sharp[7].value);
                 referenceWallsRot++;
-                errorPos += -(240-(int)(trunc((sharp[7].value + sharp[8].value)/2)));
+                errorPos += -(250-(int)(trunc((sharp[7].value + sharp[8].value)/2)));
                 referenceWallsPos++;
             }
             if(entireWall(LEFT, walllimit)) {
@@ -86,7 +86,7 @@ bool correctRotationPosition(bool start) {
             if(entireWall(FRONT, walllimit)) {
                 errorRot += (sharp[1].value -sharp[2].value);
                 referenceWallsRot++;
-                errorPos += (240-(int)(trunc((sharp[0].value + sharp[1].value + sharp[2].value)/3)));
+                errorPos += (250-(int)(trunc((sharp[0].value + sharp[1].value + sharp[2].value)/3)));
                 referenceWallsPos++;
             }
 
@@ -100,16 +100,16 @@ bool correctRotationPosition(bool start) {
             int16_t rightSpeed=0;
 
             if(referenceWallsPos != 0) {
-                leftSpeed += (int16_t)(trunc(1.0*errorPos/referenceWallsPos));
-                rightSpeed += (int16_t)(trunc(1.0*errorPos/referenceWallsPos));
+                leftSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
+                rightSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
             }
 
             if(referenceWallsRot != 0) {
-                leftSpeed += (int16_t)(trunc(1.58*errorRot/referenceWallsRot));
-                rightSpeed -= (int16_t)(trunc(1.5*errorRot/referenceWallsRot));
+                leftSpeed += (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
+                rightSpeed -= (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
             }
 
-            if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
+            if(abs(leftSpeed)<5 && abs(rightSpeed)<5) {
                 motorBrake();
                 rgbOff(0);
                 return false;
