@@ -1,10 +1,6 @@
 #include "analog.h"
 
 
-struct Sharp sharp[9];
-
-uint8_t nextSharp;
-
 void analogInit() {
     sharp[0].pin = A11;
     sharp[1].pin = A0;

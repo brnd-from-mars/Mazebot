@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "analog.h"
 #include "black.h"
+#include "melexis.h"
 #include "switch.h"
 
 

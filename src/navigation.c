@@ -1,20 +1,11 @@
 #include "navigation.h"
 
 
-int8_t rotateState;
-
-int8_t forwardState;
-
-bool blockRotateRight;
-
-int targetEncValueRotation;
-
-int targetEncValueForward;
-
 void navigationInit() {
     rotateState = -1;
     forwardState = -1;
     blockRotateRight = false;
+    enableNavigation = true;
 }
 
 void navigationRightWall() {

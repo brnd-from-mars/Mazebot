@@ -1,10 +1,6 @@
 #include "switch.h"
 
 
-struct Toggleswitch toggleswitch[3];
-
-uint8_t nextSwitch;
-
 void switchInit() {
     toggleswitch[0].pin = 40;
     toggleswitch[1].pin = 42;

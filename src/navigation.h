@@ -14,6 +14,8 @@ int8_t forwardState;
 
 bool blockRotateRight;
 
+bool enableNavigation;
+
 int targetEncValueRotation;
 
 int targetEncValueForward;

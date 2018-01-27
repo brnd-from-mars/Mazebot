@@ -1,8 +1,6 @@
 #include "timer.h"
 
 
-uint8_t loopCnt;
-
 void timerInit() {
     //deactivate all interrupts
     cli();

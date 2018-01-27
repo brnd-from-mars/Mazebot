@@ -1,10 +1,6 @@
 #include "melexis.h"
 
 
-struct Melexis melexis[4];
-
-uint8_t nextMelexis;
-
 void melexisInit() {
     pinMode(SDA, INPUT_PULLUP);
     pinMode(SCL, INPUT_PULLUP);

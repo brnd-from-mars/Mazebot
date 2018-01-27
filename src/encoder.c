@@ -1,8 +1,6 @@
 #include "encoder.h"
 
 
-struct Encoder encoder[4];
-
 void encoderInit() {
     encoder[0].pin1 = 3;
     encoder[0].pin2 = 29;

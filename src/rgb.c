@@ -1,8 +1,6 @@
 #include "rgb.h"
 
 
-struct RGB rgb[1];
-
 void rgbInit() {
     rgb[0].pinR = 8;
     rgb[0].pinG = 9;

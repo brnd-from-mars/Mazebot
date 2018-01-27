@@ -3,4 +3,6 @@
 #define LEFT 2
 #define FRONT 3
 
+#define VICTIM_TEMPERATURE 30
+
 #define SIGNUM(x) (x==0 ? 0 : x/abs(x))

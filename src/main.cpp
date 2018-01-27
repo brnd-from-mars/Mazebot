@@ -12,6 +12,7 @@ extern "C" {
 #include "rgb.h"
 #include "switch.h"
 #include "timer.h"
+#include "victim.h"
 #ifdef __cplusplus
 }
 #endif
@@ -27,6 +28,7 @@ void setup() {
     navigationInit();
     rgbInit();
     switchInit();
+    victimInit();
     // timer
     timerInit();
     rgbSet(32, 0, 0, 0);
@@ -34,11 +36,12 @@ void setup() {
     rgbSet(0, 32, 0, 0);
 }
 
-long last=0;
-
 void loop() {
     if(toggleswitch[0].value) {
-        navigationRightWall();
+        victimRecognition();
+        if(enableNavigation) {
+            navigationRightWall();
+        }
     } else {
         rgbSet(128, 0, 0, 0);
         motorBrake();

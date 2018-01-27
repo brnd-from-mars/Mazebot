@@ -1,8 +1,6 @@
 #include "motor.h"
 
 
-struct Motor motor[4];
-
 void motorInit() {
     motor[0].pin1 = 33;
     motor[0].pin2 = 31;

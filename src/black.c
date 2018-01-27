@@ -1,8 +1,6 @@
 #include "black.h"
 
 
-uint16_t darknessLeft, darknessRight;
-
 void blackInit() {
     pinMode(A9, INPUT); // right
     pinMode(A10, INPUT); // left
