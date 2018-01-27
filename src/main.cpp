@@ -31,9 +31,7 @@ void setup() {
     victimInit();
     // timer
     timerInit();
-    rgbSet(32, 0, 0, 0);
     delay(400);
-    rgbSet(0, 32, 0, 0);
 }
 
 void loop() {
@@ -43,7 +41,7 @@ void loop() {
             navigationRightWall();
         }
     } else {
-        rgbSet(128, 0, 0, 0);
+        rgbOff(0);
         motorBrake();
     }
 }

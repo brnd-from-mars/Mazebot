@@ -59,7 +59,6 @@ bool correctRotationPosition(bool start) {
 
     if(start) {
         correctionStart = millis();
-        rgbSet(0, 0, 32, 0);
         return true;
     } else {
         if(millis() < correctionStart+3000) {
@@ -92,7 +91,6 @@ bool correctRotationPosition(bool start) {
 
             if(referenceWallsPos==0 && referenceWallsRot==0) {
                 motorBrake();
-                rgbOff(0);
                 return false;
             }
 
@@ -111,7 +109,6 @@ bool correctRotationPosition(bool start) {
 
             if(abs(leftSpeed)<5 && abs(rightSpeed)<5) {
                 motorBrake();
-                rgbOff(0);
                 return false;
             }
 
@@ -121,7 +118,6 @@ bool correctRotationPosition(bool start) {
             return true;
         } else {
             motorBrake();
-            rgbOff(0);
             return false;
         }
     }

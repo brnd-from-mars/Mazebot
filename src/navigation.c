@@ -72,6 +72,7 @@ void processRotate() {
             correctRotationPosition(true);
             rotateState = 2;
         } else {
+            rgbSet(0, 32, 0, 0);
             rotate((uint16_t)(SIGNUM(targetEncValueRotation)*100));
         }
         break;
@@ -81,7 +82,7 @@ void processRotate() {
             targetEncValueRotation = 0;
             rotateState = -1;
         }
-        delay(300);
+        rgbSet(0, 0, 32, 0);
         break;
     }
 }
@@ -106,6 +107,7 @@ void processForward() {
             correctRotationPosition(true);
             forwardState = 2;
         } else {
+            rgbSet(0, 32, 0, 0);
             drive(100, 0.5, 0.02, 1.0);
         }
         break;
@@ -115,7 +117,7 @@ void processForward() {
             targetEncValueForward = 0;
             forwardState = -1;
         }
-        delay(300);
+        rgbSet(0, 0, 32, 0);
         break;
     }
 }

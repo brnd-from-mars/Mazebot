@@ -3,6 +3,8 @@
 #define LEFT 2
 #define FRONT 3
 
-#define VICTIM_TEMPERATURE 30
+#define ARENA_SIZE 4
+
+#define VICTIM_TEMPERATURE 27
 
 #define SIGNUM(x) (x==0 ? 0 : x/abs(x))

@@ -27,14 +27,16 @@ void timerInit() {
 ISR( TIMER5_COMPA_vect ) {
     loopCnt++;
     analogInterrupt();
-    melexisInterrupt();
     switchInterrupt();
     switch(loopCnt) {
     case 10:
         blackPrepare();
         break;
-    case 15:
+    case 20:
         blackMeasure();
+        break;
+    case 30:
+        melexisInterrupt();
         break;
     case 50:
         loopCnt = 0;

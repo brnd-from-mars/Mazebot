@@ -11,6 +11,11 @@ extern "C" void serialPrintInt(int number) {
     Serial.print(" ");
 }
 
+extern "C" void serialPrintFloat(float number) {
+    Serial.print(number);
+    Serial.print(" ");
+}
+
 extern "C" void serialPrintNL() {
     Serial.println();
 }
