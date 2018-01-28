@@ -9,8 +9,6 @@
 
 
 
-bool entireWall(uint8_t dir, uint16_t maxDistance);
-
 void driveReset();
 
 void drive(int16_t baseSpeed, float kP, float kI, float kD);

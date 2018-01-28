@@ -2,6 +2,7 @@
 #define ANALOG_H_
 
 #include <Arduino.h>
+#include "config.h"
 
 
 /*
@@ -29,6 +30,10 @@ uint8_t nextSharp;
 void analogInit();
 
 void analogInterrupt();
+
+bool entireWall(uint8_t dir, uint16_t maxDistance);
+
+uint8_t getWallData(uint8_t hdg);
 
 
 #endif

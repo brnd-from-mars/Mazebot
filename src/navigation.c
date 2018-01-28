@@ -6,9 +6,11 @@ void navigationInit() {
     forwardState = -1;
     blockRotateRight = false;
     enableNavigation = true;
+    completed = false;
 }
 
 void navigationRightWall() {
+    completed = false;
     if(rotateState != -1) {
         processRotate();
     } else if (forwardState != -1) {
@@ -36,14 +38,17 @@ void startRotate(int angle) {
     case 90:
         rotateState = 0;
         targetEncValueRotation = 75;
+        lastRotation = 1;
         break;
     case -90:
         rotateState = 0;
         targetEncValueRotation = -75;
+        lastRotation = -1;
         break;
     case -180:
         rotateState = 0;
         targetEncValueRotation = -150;
+        lastRotation = -2;
         break;
     }
 }
@@ -79,6 +84,8 @@ void processRotate() {
     // completed full rotation
     case 2:
         if(!correctRotationPosition(false)) {
+            mapCreatorRotate(lastRotation);
+            completed = true;
             targetEncValueRotation = 0;
             rotateState = -1;
         }
@@ -114,6 +121,8 @@ void processForward() {
     // completed forward drive
     case 2:
         if(!correctRotationPosition(false)) {
+            mapCreatorForward();
+            completed = true;
             targetEncValueForward = 0;
             forwardState = -1;
         }

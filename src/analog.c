@@ -31,3 +31,28 @@ void analogInterrupt() {
 
     nextSharp = (nextSharp==8 ? 0 : nextSharp+1);
 }
+
+bool entireWall(uint8_t dir, uint16_t maxDistance) {
+    switch(dir) {
+    case RIGHT:
+        return sharp[3].value>maxDistance && sharp[5].value>maxDistance;
+    case BACK:
+        return sharp[7].value>maxDistance && sharp[8].value>maxDistance;
+    case LEFT:
+        return sharp[4].value>maxDistance && sharp[6].value>maxDistance;
+    case FRONT:
+        return sharp[0].value>maxDistance && sharp[1].value>maxDistance && sharp[2].value>maxDistance;
+    }
+    return false;
+}
+
+uint8_t getWallData(uint8_t hdg) {
+    uint8_t wallData = 0;
+    for(uint8_t local=0; local<4; local++) {
+        if(entireWall(local, 150)) {
+            uint8_t global = (local + hdg + 1)%4;
+            wallData |= (1<<global);
+        }
+    }
+    return wallData;
+}

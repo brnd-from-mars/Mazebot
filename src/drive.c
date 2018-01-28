@@ -5,20 +5,6 @@ long correctionStart=0;
 
 int errorI=0;
 
-bool entireWall(uint8_t dir, uint16_t maxDistance) {
-    switch(dir) {
-    case RIGHT:
-        return sharp[3].value>maxDistance && sharp[5].value>maxDistance;
-    case BACK:
-        return sharp[7].value>maxDistance && sharp[8].value>maxDistance;
-    case LEFT:
-        return sharp[4].value>maxDistance && sharp[6].value>maxDistance;
-    case FRONT:
-        return sharp[0].value>maxDistance && sharp[1].value>maxDistance && sharp[2].value>maxDistance;
-    }
-    return false;
-}
-
 void driveReset() {
     errorI = 0;
 }

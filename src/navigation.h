@@ -5,12 +5,17 @@
 #include "config.h"
 #include "drive.h"
 #include "encoder.h"
+#include "map.h"
 #include "motor.h"
 
+
+bool completed;
 
 int8_t rotateState;
 
 int8_t forwardState;
+
+int8_t lastRotation;
 
 bool blockRotateRight;
 
