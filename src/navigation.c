@@ -37,24 +37,24 @@ void startRotate(int angle) {
     switch(angle) {
     case 90:
         rotateState = 0;
-        targetEncValueRotation = 75;
+        targetEncValueRotation = 70;
         lastRotation = 1;
         break;
     case -90:
         rotateState = 0;
-        targetEncValueRotation = -75;
+        targetEncValueRotation = -70;
         lastRotation = -1;
         break;
     case -180:
         rotateState = 0;
-        targetEncValueRotation = -150;
+        targetEncValueRotation = -140;
         lastRotation = -2;
         break;
     }
 }
 
 void startForward(int distance) {
-    targetEncValueForward = (int)(distance*4.75);
+    targetEncValueForward = (int)(distance*4.50);
     forwardState = 0;
 }
 

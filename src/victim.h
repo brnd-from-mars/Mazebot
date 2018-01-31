@@ -11,6 +11,8 @@ int8_t victimState;
 
 uint8_t victimPosition;
 
+int8_t victimSetKitdropper;
+
 long victimStart;
 
 void victimInit();

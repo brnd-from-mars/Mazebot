@@ -8,6 +8,17 @@
 #define WEST 2
 #define NORTH 3
 
+#define SERVO_MIDDLE 80
+#define SERVO_LEFT 3
+#define SERVO_SHORT_LEFT 85
+#define SERVO_RIGHT 170
+#define SERVO_SHORT_RIGHT 75
+
+#define BLACK_RECOGNITION
+
+#define TIMER_STOP TCCR5B &= ~((1<<CS50)|(1<<CS51));
+#define TIMER_START TCCR5B |= (1<<CS50)|(1<<CS51);
+
 #define FLOOR_SIZE 4
 #define FLOOR_COUNT 1
 

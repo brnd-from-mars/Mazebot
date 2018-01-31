@@ -14,11 +14,15 @@ void blackInit() {
 
 void blackPrepare() {
     digitalWrite(24, HIGH);
+    blackLedActive = true;
 }
 
 void blackMeasure() {
-    darknessLeft = analogRead(A10);
-    darknessRight = analogRead(A9);
+    if(blackLedActive) {
+        darknessLeft = analogRead(A10);
+        darknessRight = analogRead(A9);
+    }
 
     digitalWrite(24, LOW);
+    blackLedActive = false;
 }
