@@ -15,7 +15,7 @@
 
 #define VICTIM_TEMPERATURE 30
 
-#define RAMPUPVAL 335
-#define RAMPDOWNVAL 341
+#define RAMP_UP 330
+#define RAMP_DOWN 345
 
 #define SIGNUM(x) (x==0 ? 0 : x/abs(x))
