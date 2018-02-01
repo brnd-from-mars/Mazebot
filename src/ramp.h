@@ -5,6 +5,8 @@
 #include "config.h"
 
 
+uint16_t accel;
+
 int8_t rampState;
 
 uint8_t maybeOnRampUp;

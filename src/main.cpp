@@ -96,14 +96,22 @@ void setup() {
 }
 
 void loop() {
-    //TIMER_STOP
-    Serial.println(melexis[0].value);
-    //TIMER_START
+    TIMER_STOP
+    rampInterrupt();
+    TIMER_START
 
     if(toggleswitch[0].value) {
         victimRecognition();
         if(enableNavigation) {
-            navigationRightWall();
+            if(rampState==0)
+                navigationRightWall();
+            else if(rampState==1) {
+                drive(160, 0.5, 0.02, 1.0);
+                rgbSet(64, 64, 0, 0);
+            } else {
+                drive(80, 0.5, 0.02, 1.0);
+                rgbSet(64, 64, 0, 0);
+            }
         }
     } else {
         rgbOff(0);
@@ -134,19 +142,6 @@ void loop() {
         Serial.println();
     }
 
-    if(toggleswitch[0].value) {
-        victimRecognition();
-        if(enableNavigation) {
-            if(rampState==0)
-                navigationRightWall();
-            else {
-                drive(160, 0.5, 0.02, 1.0);
-                rgbSet(32, 32, 0, 0);
-            }
-        }
-    } else {
-        rgbOff(0);
-        motorBrake();
     if(victimSetKitdropper == 1) {
         servoRight();
         victimSetKitdropper = 0;

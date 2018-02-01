@@ -5,6 +5,7 @@
 #include "analog.h"
 #include "black.h"
 #include "melexis.h"
+#include "ramp.h"
 #include "switch.h"
 
 
