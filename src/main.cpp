@@ -94,31 +94,6 @@ void setup() {
 }
 
 void loop() {
-
-    // if(completed) {
-    //     Serial.print("hdg: ");
-    //     Serial.print(heading);
-    //     Serial.print(" y: ");
-    //     Serial.print(pos.y);
-    //     Serial.print(" x: ");
-    //     Serial.println(pos.x);
-    //     for(uint8_t y=0; y<FLOOR_SIZE; y++) {
-    //         for(uint8_t x=0; x<FLOOR_SIZE; x++) {
-    //             Serial.print("y: ");
-    //             Serial.print(y);
-    //             Serial.print(" x: ");
-    //             Serial.print(x);
-    //             Serial.print(" visited: ");
-    //             Serial.print(arena[0].fields[y][x].visited, BIN);
-    //             Serial.print(" type ");
-    //             Serial.print(arena[0].fields[y][x].type);
-    //             Serial.print(" wallData: ");
-    //             Serial.println(arena[0].fields[y][x].wallData, BIN);
-    //         }
-    //     }
-    //     Serial.println();
-    // }
-
     if(toggleswitch[0].value) {
         victimRecognition();
         if(enableNavigation) {
@@ -127,6 +102,30 @@ void loop() {
     } else {
         rgbOff(0);
         motorBrake();
+    }
+
+    if(toggleswitch[1].value) {
+        Serial.print("hdg: ");
+        Serial.print(heading);
+        Serial.print(" y: ");
+        Serial.print(pos.y);
+        Serial.print(" x: ");
+        Serial.println(pos.x);
+        for(uint8_t y=0; y<FLOOR_SIZE; y++) {
+            for(uint8_t x=0; x<FLOOR_SIZE; x++) {
+                Serial.print("y: ");
+                Serial.print(y);
+                Serial.print(" x: ");
+                Serial.print(x);
+                Serial.print(" visited: ");
+                Serial.print(arena[0].fields[y][x].visited, BIN);
+                Serial.print(" type ");
+                Serial.print(arena[0].fields[y][x].type);
+                Serial.print(" wallData: ");
+                Serial.println(arena[0].fields[y][x].wallData, BIN);
+            }
+        }
+        Serial.println();
     }
 
     if(victimSetKitdropper == 1)

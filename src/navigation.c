@@ -6,17 +6,18 @@ void navigationInit() {
     forwardState = -1;
     blockRotateRight = false;
     enableNavigation = true;
-    completed = false;
 }
 
 void navigationRightWall() {
-    completed = false;
     if(rotateState != -1) {
         processRotate();
     } else if (forwardState != -1) {
         processForward();
     } else {
-        if(!entireWall(RIGHT, 150) && !blockRotateRight) {
+        if(blackEscaping) {
+            startRotate(-90);
+            blockRotateRight = true;
+        } else if(!entireWall(RIGHT, 150) && !blockRotateRight && mapAllowRightTurn()) {
             startRotate(90);
             blockRotateRight = true;
         } else if(entireWall(FRONT, 150)) {
@@ -58,6 +59,11 @@ void startForward(int distance) {
     forwardState = 0;
 }
 
+void startForwardByEncoder(int distance) {
+    targetEncValueForward = distance;
+    forwardState = 0;
+}
+
 void processRotate() {
     switch(rotateState) {
     // do not perform rotation, processRotate shouldn't get called
@@ -85,7 +91,7 @@ void processRotate() {
     case 2:
         if(!correctRotationPosition(false)) {
             mapCreatorRotate(lastRotation);
-            completed = true;
+            blackEscaping = false;
             targetEncValueRotation = 0;
             rotateState = -1;
         }
@@ -109,20 +115,25 @@ void processForward() {
         break;
     // performing forward drive
     case 1:
-        if(distanceCoveredEnc() >= abs(targetEncValueForward)) {
+        if(((darknessLeft > 900) || (darknessRight > 900)) && !blackEscaping) {
+            driveReset();
+            blackEscaping = true;
+            mapCreatorBlackField();
+            startForwardByEncoder(-distanceCoveredEnc());
+        } else if(distanceCoveredEnc() >= abs(targetEncValueForward)) {
             driveReset();
             correctRotationPosition(true);
             forwardState = 2;
         } else {
             rgbSet(0, 32, 0, 0);
-            drive(100, 0.5, 0.02, 1.0);
+            drive(SIGNUM(targetEncValueForward)*100, 0.5, 0.02, 1.0);
         }
         break;
     // completed forward drive
     case 2:
         if(!correctRotationPosition(false)) {
-            mapCreatorForward();
-            completed = true;
+            if(!blackEscaping)
+                mapCreatorForward();
             targetEncValueForward = 0;
             forwardState = -1;
         }
@@ -132,9 +143,9 @@ void processForward() {
 }
 
 int distanceCoveredEnc() {
-    int avg;
-    for(uint8_t i=0; i<4; i++) {
-        avg += abs(encoder[0].value);
-    }
+    int avg=0;
+    for(uint8_t i=0; i<4; i++)
+        avg += abs(encoder[i].value);
+
     return round(avg/4);
 }

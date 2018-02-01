@@ -63,5 +63,15 @@ void mapCreatorForward();
 
 bool mapCreatorRotate(int8_t amount);
 
+void mapCreatorPushX();
+
+void mapCreatorPushY();
+
+void mapCreatorBlackField();
+
+struct Point mapGetAdjacentPosition(uint8_t dir, bool allowPush);
+
+bool mapAllowRightTurn();
+
 
 #endif

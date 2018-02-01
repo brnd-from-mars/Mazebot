@@ -3,13 +3,12 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "black.h"
 #include "drive.h"
 #include "encoder.h"
 #include "map.h"
 #include "motor.h"
 
-
-bool completed;
 
 int8_t rotateState;
 

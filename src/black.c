@@ -7,6 +7,8 @@ void blackInit() {
     pinMode(24, OUTPUT);
     digitalWrite(24, LOW);
 
+    blackEscaping = false;
+    
     darknessLeft = 0;
     darknessRight = 0;
 }

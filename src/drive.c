@@ -93,7 +93,7 @@ bool correctRotationPosition(bool start) {
                 rightSpeed -= (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
             }
 
-            if(abs(leftSpeed)<15 && abs(rightSpeed)<15) {
+            if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
                 motorBrake();
                 return false;
             }

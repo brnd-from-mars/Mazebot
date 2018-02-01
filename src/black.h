@@ -4,6 +4,8 @@
 #include <Arduino.h>
 
 
+bool blackEscaping;
+
 bool blackLedActive;
 
 uint16_t darknessLeft, darknessRight;
