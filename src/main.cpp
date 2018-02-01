@@ -11,6 +11,7 @@ extern "C" {
 #include "melexis.h"
 #include "motor.h"
 #include "navigation.h"
+#include "ramp.h"
 #include "rgb.h"
 #include "switch.h"
 #include "timer.h"
@@ -78,6 +79,7 @@ void setup() {
     melexisInit();
     motorInit();
     navigationInit();
+    rampInit();
     rgbInit();
     switchInit();
     victimInit();
@@ -132,6 +134,19 @@ void loop() {
         Serial.println();
     }
 
+    if(toggleswitch[0].value) {
+        victimRecognition();
+        if(enableNavigation) {
+            if(rampState==0)
+                navigationRightWall();
+            else {
+                drive(160, 0.5, 0.02, 1.0);
+                rgbSet(32, 32, 0, 0);
+            }
+        }
+    } else {
+        rgbOff(0);
+        motorBrake();
     if(victimSetKitdropper == 1) {
         servoRight();
         victimSetKitdropper = 0;
