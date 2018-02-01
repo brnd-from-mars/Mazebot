@@ -13,6 +13,8 @@ uint8_t victimPosition;
 
 int8_t victimSetKitdropper;
 
+uint8_t victimCounter;
+
 long victimStart;
 
 void victimInit();

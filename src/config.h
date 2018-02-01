@@ -22,6 +22,6 @@
 #define FLOOR_SIZE 6
 #define FLOOR_COUNT 1
 
-#define VICTIM_TEMPERATURE 30
+#define VICTIM_TEMPERATURE 28
 
 #define SIGNUM(x) (x==0 ? 0 : x/abs(x))

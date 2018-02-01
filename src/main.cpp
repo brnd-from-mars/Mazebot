@@ -90,10 +90,14 @@ void setup() {
     mapInit();
 
     // servo
-    servoLeft();
+    servoInit();
 }
 
 void loop() {
+    //TIMER_STOP
+    Serial.println(melexis[0].value);
+    //TIMER_START
+
     if(toggleswitch[0].value) {
         victimRecognition();
         if(enableNavigation) {
@@ -128,8 +132,13 @@ void loop() {
         Serial.println();
     }
 
-    if(victimSetKitdropper == 1)
+    if(victimSetKitdropper == 1) {
         servoRight();
-    if(victimSetKitdropper == 3)
+        victimSetKitdropper = 0;
+    }
+
+    if(victimSetKitdropper == -1) {
         servoLeft();
+        victimSetKitdropper = 0;
+    }
 }
