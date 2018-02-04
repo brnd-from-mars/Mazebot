@@ -9,12 +9,12 @@
 #include "motor.hpp"
 
 
-motor::motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, pwm *_pinP)
+motor::motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr)
 {
     dPort = _dPort;
     bit1 = _bit1;
     bit2 = _bit2;
-    pinP = _pinP;
+    ocr = _ocr;
 
     // calculate address of data direction register for direction pins
     volatile uint8_t *dDdr = dPort-1;
@@ -44,9 +44,9 @@ void motor::setVelocity(int16_t _velocity)
     }
 
     // calculate dutycycle (remove sign and set upper limit)
-    velocity = ((255>abs(_velocity)) ? abs(_velocity) : 255);
+    velocity = abs(_velocity) & 0xFF;
     // set new dutycycle
-    (*pinP).set(velocity);
+    *ocr = velocity;
     // append removed sign and save
     velocity *= (_velocity==0) ? 0 : (_velocity / abs(velocity));
 }

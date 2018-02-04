@@ -14,10 +14,10 @@
 
 
 /**
- * @brief A class that represents a pwm pin
+ * @brief A class that creates a pwm pin
  * 
- * This class represents a pwm pin. It sets the pin as output and
- * varies the dutycycle
+ * This class creates a pwm signal at a given pin. It sets the pin as output and
+ * can give a pointer to the register with its dutycycle.
  */
 class pwm
 {
@@ -33,28 +33,28 @@ class pwm
          * @param _bit the bit of the pin in _port
          * @param _timer the atmega timer (0/1/3/4/5) controlling the pwm pin
          * @param _comparator the comparator (A->1, B->2, C->3) connected to the pwm pin
-         * @param _dutycycle a pointer to the register containing the curretn compare match value (i.e. dutycycle)
          */
-        pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator, volatile uint8_t *_dutycycle);
+        pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator);
 
         /**
-         * @brief A function that changes the dutycycle
+         * @brief The destructor of the pwm class
          * 
-         * @param value the dutycycle from 0 (0%) to 255 (100%)
+         * This function does nothing.
          */
-        void set(uint8_t value);
+        ~pwm();
 
         /**
-         * @brief A function that returns the curretn dutycycle
+         * @brief The function that returns a pointer to the register
+         * containing  the current compare match value (i.e. dutycycle)
          * 
-         * @return uint8_t the dutycycle from 0 (0%) to 255 (100%) 
+         * @return uint8_t* a pointer to a register
          */
-        uint8_t get(void);
+        volatile uint8_t* getDutycycleRegister();
 
     private:
 
         /**
-         * @brief a pointer to the register containing the curretn compare match value (i.e. dutycycle)
+         * @brief a pointer to the register containing the current compare match value (i.e. dutycycle)
          */
         volatile uint8_t *dutycycle;
 

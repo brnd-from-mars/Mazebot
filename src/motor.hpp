@@ -11,7 +11,6 @@
 
 
 #include <Arduino.h>
-#include "pwm.hpp"
 
 
 /**
@@ -32,9 +31,9 @@ class motor
          * @param _dPort a pointer to the PORT of both direction pins
          * @param _bit1 the bit of the first pin in _dPort
          * @param _bit2 the bit of the second pin in _dPort
-         * @param _pinP a pointer to the velocity controlling pwm pin
+         * @param _ocr a pointer to the register containing the current compare match value (i.e. dutycycle)
          */
-        motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, pwm *_pinP);
+        motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr);
 
         /**
          * @brief A function that sets the velocity
@@ -73,9 +72,9 @@ class motor
         uint8_t bit2;
 
         /**
-         * @brief A pointer to the velocity controlling pwm pin
+         * @brief A pointer to the register containing the current compare match value (i.e. dutycycle)
          */
-        pwm *pinP;
+        volatile uint8_t *ocr;
         
         /**
          * @brief The current velocity between -255 (backwards) and 255 (forwards)
