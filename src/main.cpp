@@ -7,6 +7,7 @@
 
 
 #include <Arduino.h>
+#include "config.hpp"
 #include "motor.hpp"
 #include "pwm.hpp"
 
@@ -18,10 +19,26 @@
  */
 void setup(void)
 {
-    pwm p = pwm(&PORTG, 5, 0, 2, &OCR0B);
-    motor m = motor(&PORTC, 4, 6, &p);
+    Serial.begin(38400);
 
-    m.setVelocity(255);
+    pwm *p;
+    motor *m[4];
+    
+    p = new pwm(&PORTG, 5, 0, 2);
+    m[FRONTRIGHT] = new motor(&PORTC, 4, 6, p->getDutycycleRegister());
+    delete p;
+
+    p = new pwm(&PORTE, 3, 3, 1);
+    m[BACKRIGHT] = new motor(&PORTC, 2, 0, p->getDutycycleRegister());
+    delete p;
+
+    p = new pwm(&PORTH, 3, 4, 1);
+    m[BACKLEFT] = new motor(&PORTG, 2, 0, p->getDutycycleRegister());
+    delete p;
+
+    p = new pwm(&PORTH, 4, 4, 2);
+    m[FRONTLEFT] = new motor(&PORTL, 4, 6, p->getDutycycleRegister());
+    delete p;
 }
 
 /**
@@ -32,4 +49,5 @@ void setup(void)
  */
 void loop(void)
 {
+    Serial.println("Hello, world!");
 }
