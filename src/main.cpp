@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include "motor.hpp"
+#include "pwm.hpp"
 
 
 /**
@@ -17,6 +18,10 @@
  */
 void setup(void)
 {
+    pwm p = pwm(&PORTG, 5, 0, 2, &OCR0B);
+    motor m = motor(&PORTC, 4, 6, &p);
+
+    m.setVelocity(255);
 }
 
 /**

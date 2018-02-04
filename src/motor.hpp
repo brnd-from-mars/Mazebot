@@ -11,10 +11,11 @@
 
 
 #include <Arduino.h>
+#include "pwm.hpp"
 
 
 /**
- * @brief A class representing a motor
+ * @brief A class that represents a motor
  * 
  * This class represents a dc motor. It can control direction and velocity.
  */
@@ -31,13 +32,9 @@ class motor
          * @param _dPort a pointer to the PORT of both direction pins
          * @param _bit1 the bit of the first pin in _dPort
          * @param _bit2 the bit of the second pin in _dPort
-         * @param _vPort a pointer to the PORT of the pwm pin
-         * @param _bitv the bit of the pin in _vPort
-         * @param _timer the atmega timer (0/1/3/4/5) controlling the pwm pin
-         * @param _comparator the comparator (A->1, B->2, C->3) connected to the pwm pin
-         * @param _dutycycle a pointer to the register containing the curretn compare match value (i.e. dutycycle)
+         * @param _pinP a pointer to the velocity controlling pwm pin
          */
-        motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_vPort, uint8_t _bitv, uint8_t _timer, uint8_t _comparator, volatile uint8_t *_dutycycle);
+        motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, pwm *_pinP);
 
         /**
          * @brief A function that sets the velocity
@@ -62,33 +59,29 @@ class motor
 
         /**
          * @brief A pointer to the PORT of both direction pins
-         * 
          */
         volatile uint8_t *dPort;
 
         /**
          * @brief The bit of the first pin in dPort
-         * 
          */
         uint8_t bit1;
 
         /**
          * @brief The bit of the second pin in dPort
-         * 
          */
         uint8_t bit2;
 
         /**
-         * @brief A pointer to the register containing the curretn compare match value (i.e. dutycycle)
-         * 
+         * @brief A pointer to the velocity controlling pwm pin
          */
-        volatile uint8_t *dutycycle;
+        pwm *pinP;
         
         /**
          * @brief The current velocity between -255 (backwards) and 255 (forwards)
-         * 
          */
         int16_t velocity;
+
 };
 
 
