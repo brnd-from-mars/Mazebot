@@ -11,8 +11,8 @@
 #include "eepromCalibratable.cpp"
 
 
-motorController::motorController(motor *_fr, motor *_br, motor *_bl, motor *_fl)
-    : eepromCalibratable<uint16_t>::eepromCalibratable(0xA00, 4)
+MotorController::MotorController(Motor *_fr, Motor *_br, Motor *_bl, Motor *_fl)
+    : EepromCalibratable<uint16_t>::EepromCalibratable(0xA00, 4)
 {
     // save pointers to all 4 motors
     motors[FRONTRIGHT] = _fr;
@@ -23,25 +23,25 @@ motorController::motorController(motor *_fr, motor *_br, motor *_bl, motor *_fl)
     // calculate velocity factor for error calibration
 }
 
-void motorController::setVelocityRight(int16_t velocity)
+void MotorController::setVelocityRight(int16_t velocity)
 {
     motors[FRONTRIGHT]->setVelocity(velocity);
     motors[BACKRIGHT]->setVelocity(velocity);
 }
 
-void motorController::setVelocityLeft(int16_t velocity)
+void MotorController::setVelocityLeft(int16_t velocity)
 {
     motors[FRONTLEFT]->setVelocity(velocity);
     motors[BACKLEFT]->setVelocity(velocity);
 }
 
-void motorController::startCalibration(void)
+void MotorController::startCalibration(void)
 {
     // reset encoder values
     // start long term motor test
 }
 
-void motorController::endCalibration(void)
+void MotorController::endCalibration(void)
 {
     // write encoder values into eeprom
 }

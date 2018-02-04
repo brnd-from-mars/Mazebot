@@ -9,7 +9,7 @@
 #include "pwm.hpp"
 
 
-pwm::pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator)
+Pwm::Pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator)
 {
     // calculate address of data direction register for pwm pin
     volatile uint8_t *ddr = _port-1;
@@ -78,11 +78,7 @@ pwm::pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _compara
     }
 }
 
-pwm::~pwm()
-{
-}
-
-volatile uint8_t* pwm::getDutycycleRegister()
+volatile uint8_t* Pwm::getDutycycleRegister()
 {
     return dutycycle;
 }

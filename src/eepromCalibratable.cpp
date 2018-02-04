@@ -10,7 +10,7 @@
 
 
 template <typename T>
-eepromCalibratable<T>::eepromCalibratable(uint16_t _start, uint8_t _amount)
+EepromCalibratable<T>::EepromCalibratable(uint16_t _start, uint8_t _amount)
 {
     start = _start;
     amount = _amount;
@@ -19,7 +19,7 @@ eepromCalibratable<T>::eepromCalibratable(uint16_t _start, uint8_t _amount)
 }
 
 template <typename T>
-void eepromCalibratable<T>::writeValue(uint8_t _num, T _value)
+void EepromCalibratable<T>::writeValue(uint8_t _num, T _value)
 {
     if(_num >= amount)
         return;
@@ -43,7 +43,7 @@ void eepromCalibratable<T>::writeValue(uint8_t _num, T _value)
 }
 
 template <typename T>
-T eepromCalibratable<T>::readValue(uint8_t _num)
+T EepromCalibratable<T>::readValue(uint8_t _num)
 {
     if(_num >= amount)
         return 0;

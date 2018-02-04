@@ -9,7 +9,7 @@
 #include "motor.hpp"
 
 
-motor::motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr)
+Motor::Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr)
 {
     dPort = _dPort;
     bit1 = _bit1;
@@ -24,7 +24,7 @@ motor::motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile ui
     *dPort &= ~((1<<bit1) | (1<<bit2));
 }
 
-void motor::setVelocity(int16_t _velocity)
+void Motor::setVelocity(int16_t _velocity)
 {
     // set motor direction
     switch((_velocity==0) ? 0 : (_velocity / abs(_velocity)))
@@ -51,12 +51,12 @@ void motor::setVelocity(int16_t _velocity)
     velocity *= (_velocity==0) ? 0 : (_velocity / abs(velocity));
 }
 
-int16_t motor::getVelocity(void)
+int16_t Motor::getVelocity(void)
 {
     return velocity;
 }
 
-void motor::brake(void)
+void Motor::brake(void)
 {
-    motor::setVelocity(0);
+    Motor::setVelocity(0);
 }

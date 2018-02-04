@@ -18,7 +18,7 @@
  * 
  * This class represents a dc motor. It can control direction and velocity.
  */
-class motor
+class Motor
 {
     public:
 
@@ -33,7 +33,7 @@ class motor
          * @param _bit2 the bit of the second pin in _dPort
          * @param _ocr a pointer to the register containing the current compare match value (i.e. dutycycle)
          */
-        motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr);
+        Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr);
 
         /**
          * @brief A function that sets the velocity

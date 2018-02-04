@@ -21,7 +21,7 @@
  * This class controls 4 velocity and direction of 4 different motors,
  * handles the encoder values and calibrates the motors.
  */
-class motorController : protected eepromCalibratable<uint16_t>
+class MotorController : protected EepromCalibratable<uint16_t>
 {
     
     public:
@@ -36,7 +36,7 @@ class motorController : protected eepromCalibratable<uint16_t>
          * @param _bl a pointer to the back-left positioned motor
          * @param _fl a pointer to the front-left positioned motor
          */
-        motorController(motor *_fr, motor *_br, motor *_bl, motor *_fl);
+        MotorController(Motor *_fr, Motor *_br, Motor *_bl, Motor *_fl);
 
         /**
          * @brief A function that sets the velocity of both motors on the RHS
@@ -67,7 +67,7 @@ class motorController : protected eepromCalibratable<uint16_t>
         /**
          * @brief Pointers to all 4 motors
          */
-        motor *motors[4];
+        Motor *motors[4];
 
 };
 

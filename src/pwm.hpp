@@ -19,7 +19,7 @@
  * This class creates a pwm signal at a given pin. It sets the pin as output and
  * can give a pointer to the register with its dutycycle.
  */
-class pwm
+class Pwm
 {
     public:
 
@@ -34,14 +34,7 @@ class pwm
          * @param _timer the atmega timer (0/1/3/4/5) controlling the pwm pin
          * @param _comparator the comparator (A->1, B->2, C->3) connected to the pwm pin
          */
-        pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator);
-
-        /**
-         * @brief The destructor of the pwm class
-         * 
-         * This function does nothing.
-         */
-        ~pwm();
+        Pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator);
 
         /**
          * @brief The function that returns a pointer to the register

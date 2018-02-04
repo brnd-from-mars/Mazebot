@@ -14,12 +14,12 @@
 
 
 template<typename T>
-class eepromCalibratable
+class EepromCalibratable
 {
     
     public:
 
-        eepromCalibratable(uint16_t _start, uint8_t _amount);
+        EepromCalibratable(uint16_t _start, uint8_t _amount);
 
         void writeValue(uint8_t _num, T _value);
 
