@@ -23,7 +23,7 @@ class Motor
     public:
 
         /**
-         * @brief The constructor of the motor class
+         * @brief The constructor of the Motor class
          * 
          * This function sets the motor pins to output and starts a suitable pwm timer.
          * For more information please have a look at the official Atmega2560 datasheet (Sections 16 and 17).

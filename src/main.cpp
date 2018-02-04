@@ -62,6 +62,12 @@ void loop(void)
 {
 }
 
+/**
+ * @brief Timer loop
+ * 
+ * This is the timer loop that interrupts the main loop at a 1kHz rate.
+ * The sensor read-ins and high power led are getting controlled here.
+ */
 ISR(TIMER1_COMPA_vect)
 {
 }

@@ -18,7 +18,7 @@ Timer::Timer(uint16_t _prescaler, uint16_t _top)
     // reset timer interrupt mask
     TIMSK1 = 0;
 
-    // set timer 1 to clear on compare mode
+    // set timer 1 to clear timer on compare mode
     TCCR1B |= (1<<WGM12);
 
     // activate interrupt for compare A
@@ -66,6 +66,7 @@ void Timer::setTop(uint16_t _top)
 {
     top = _top;
 
+    // set output compare register which indicates the TOP value
     OCR1AH = (top & 0xFF00) >> 8;
     OCR1AL = (top & 0x00FF);
 }

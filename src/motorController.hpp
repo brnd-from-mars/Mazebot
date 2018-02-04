@@ -27,7 +27,7 @@ class MotorController : protected EepromCalibratable<uint16_t>
     public:
 
         /**
-         * @brief The constructor of the motorControll class
+         * @brief The constructor of the MotorControll class
          * 
          * This function saves the pointers to the 4 motor objects.
          * 

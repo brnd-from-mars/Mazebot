@@ -24,7 +24,7 @@ class Pwm
     public:
 
         /**
-         * @brief The constructor of the pwm class
+         * @brief The constructor of the Pwm class
          * 
          * This function sets the pwm pin to output and starts a suitable pwm timer.
          * For more information please have a look at the official Atmega2560 datasheet (Sections 16 and 17).
@@ -47,7 +47,7 @@ class Pwm
     private:
 
         /**
-         * @brief a pointer to the register containing the current compare match value (i.e. dutycycle)
+         * @brief A pointer to the register containing the current compare match value (i.e. dutycycle)
          */
         volatile uint8_t *dutycycle;
 
