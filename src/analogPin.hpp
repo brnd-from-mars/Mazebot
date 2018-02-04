@@ -48,6 +48,13 @@ class AnalogPin
          */
         uint16_t getLastValue();
 
+    protected:
+
+        /**
+         * @brief The last measurement
+         */
+        uint16_t lastValue;
+
     private:
 
         /**
@@ -59,11 +66,6 @@ class AnalogPin
          * @brief The multiplexer channel the pin is connected to
          */
         uint8_t channel;
-
-        /**
-         * @brief The last Measurement
-         */
-        uint16_t lastValue;
 
 };
 

@@ -17,13 +17,15 @@
 #include "timer.hpp"
 
 #include "analogDigitalConverter.hpp"
-#include "analogPin.hpp"
+//#include "analogPin.hpp"
+#include "sharp.hpp"
 
 
 // MotorController *motorController;
 Timer *timer;
 AnalogDigitalConverter *adc;
-AnalogPin *pin1, *pin2, *pin3;
+
+Sharp *front, *left, *right;
 
 /**
  * @brief Arduino setup function
@@ -59,9 +61,9 @@ void setup(void)
 
     adc = new AnalogDigitalConverter();
 
-    pin1 = new AnalogPin(adc, 0);
-    pin2 = new AnalogPin(adc, 11);
-    pin3 = new AnalogPin(adc, 15);
+    front = new Sharp(adc, 11);
+    left = new Sharp(adc, 15);
+    right = new Sharp(adc, 0);
 }
 
 /**
@@ -72,12 +74,12 @@ void setup(void)
  */
 void loop(void)
 {
-    Serial.print(pin1->getLastValue());
+    Serial.print("0,600,");
+    Serial.print(left->getDistance());
     Serial.print(",");
-    Serial.print(pin2->getLastValue());
+    Serial.print(front->getDistance());
     Serial.print(",");
-    Serial.print(pin3->getLastValue());
-    Serial.println();
+    Serial.println(right->getDistance());
 }
 
 /**
@@ -88,7 +90,7 @@ void loop(void)
  */
 ISR(TIMER1_COMPA_vect)
 {
-    pin1->read();
-    pin2->read();
-    pin3->read();
+    left->read();
+    front->read();
+    right->read();
 }
