@@ -30,16 +30,16 @@ void motor::setVelocity(int16_t _velocity)
     switch((_velocity==0) ? 0 : (_velocity / abs(_velocity)))
     {
     case 0:
-        *dPort |= (1<<bit1);
-        *dPort |= (1<<bit2);
+        *dPort |= (1<<bit1); // high
+        *dPort |= (1<<bit2); // high
         break;
     case +1:
-        *dPort |= (1<<bit1);
-        *dPort &= ~(1<<bit2);
+        *dPort |= (1<<bit1); // high
+        *dPort &= ~(1<<bit2); // low
         break;
     case -1:
-        *dPort &= ~(1<<bit1);
-        *dPort |= (1<<bit2);
+        *dPort &= ~(1<<bit1); // low
+        *dPort |= (1<<bit2); // high
         break;
     }
 

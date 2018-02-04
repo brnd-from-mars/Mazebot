@@ -9,7 +9,11 @@
 #include <Arduino.h>
 #include "config.hpp"
 #include "motor.hpp"
+#include "motorController.hpp"
 #include "pwm.hpp"
+
+
+motorController *mController;
 
 
 /**
@@ -39,6 +43,8 @@ void setup(void)
     p = new pwm(&PORTH, 4, 4, 2);
     m[FRONTLEFT] = new motor(&PORTL, 4, 6, p->getDutycycleRegister());
     delete p;
+
+    mController = new motorController(m[FRONTRIGHT], m[BACKRIGHT], m[BACKLEFT], m[FRONTLEFT]);
 }
 
 /**
@@ -49,5 +55,4 @@ void setup(void)
  */
 void loop(void)
 {
-    Serial.println("Hello, world!");
 }
