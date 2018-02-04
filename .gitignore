@@ -1,7 +1,11 @@
-.pioenvs
-.piolibdeps
+.pioenvs/
+.piolibdeps/
 .vscode/
-.vscode/c_cpp_properties.json
-.vscode/settings.json
+.git/
+
 .DS_Store
-.vscode/launch.json
+
+src/dox/
+src/Doxyfile
+
+platformio.ini
