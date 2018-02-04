@@ -6,8 +6,8 @@
  */
 
 
-#ifndef PWM_H_
-#define PWM_H_
+#ifndef PWM_HPP_
+#define PWM_HPP_
 
 
 #include <Arduino.h>

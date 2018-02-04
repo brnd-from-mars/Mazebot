@@ -25,8 +25,8 @@ class Motor
         /**
          * @brief The constructor of the Motor class
          * 
-         * This function sets the motor pins to output and starts a suitable pwm timer.
-         * For more information please have a look at the official Atmega2560 datasheet (Sections 16 and 17).
+         * This function sets the motor pins to output stores the pointer to the
+         * output compare register for the velocity control
          * 
          * @param _dPort a pointer to the PORT of both direction pins
          * @param _bit1 the bit of the first pin in _dPort
