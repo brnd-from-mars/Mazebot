@@ -9,7 +9,8 @@
 #include "motor.hpp"
 
 
-Motor::Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr)
+Motor::Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr, volatile uint8_t *_pInStep, uint8_t _bitStep, volatile uint8_t *_pInDir, uint8_t _bitDir)
+    : Encoder::Encoder(_pInStep, _bitStep, _pInDir, _bitDir)
 {
     dPort = _dPort;
     bit1 = _bit1;

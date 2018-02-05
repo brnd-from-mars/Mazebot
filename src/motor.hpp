@@ -13,13 +13,16 @@
 #include <Arduino.h>
 #include "config.hpp"
 
+#include "encoder.hpp"
+
 
 /**
  * @brief A class that represents a motor
  * 
  * This class represents a dc motor. It can control direction and velocity.
+ * Its superclass is Encoder, so a motor object can read its own covered steps.
  */
-class Motor
+class Motor : public Encoder
 {
     public:
 
@@ -27,14 +30,19 @@ class Motor
          * @brief The constructor of the Motor class
          * 
          * This function sets the motor pins to output stores the pointer to the
-         * output compare register for the velocity control
+         * output compare register for the velocity control and calls the superclass'
+         * constrctor.
          * 
          * @param _dPort a pointer to the PORT of both direction pins
          * @param _bit1 the bit of the first pin in _dPort
          * @param _bit2 the bit of the second pin in _dPort
          * @param _ocr a pointer to the register containing the current compare match value (i.e. dutycycle)
+         * @param _pInStep a pointer to the PIN register containing the step pin
+         * @param _bitStep the bit of the previously mentioned pin in the register
+         * @param _pInDir a pointer to the PIN register containing the direction pin
+         * @param _bitDir the bit of the previously mentioned pin in the register
          */
-        Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr);
+        Motor(volatile uint8_t *_dPort, uint8_t _bit1, uint8_t _bit2, volatile uint8_t *_ocr, volatile uint8_t *_pInStep, uint8_t _bitStep, volatile uint8_t *_pInDir, uint8_t _bitDir);
 
         /**
          * @brief A function that sets the velocity
