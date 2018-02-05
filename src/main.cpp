@@ -11,9 +11,10 @@
 
 #include "timer.hpp"
 
+#include "encoder.hpp"
 
 Timer *t;
-
+Encoder *e;
 
 /**
  * @brief Arduino setup function
@@ -23,6 +24,8 @@ Timer *t;
 void setup(void)
 {
     t = new Timer(8, 1999, 50);
+
+    e = new Encoder(&PINE, 5, &PINA, 7);
 
     Serial.begin(115200);
 }
@@ -35,8 +38,7 @@ void setup(void)
  */
 void loop(void)
 {
-    Serial.println(t->getLoopCount());
-    DDRB |= (1<<7);
+    Serial.println(e->getSteps());
 }
 
 /**
@@ -47,6 +49,7 @@ void loop(void)
  */
 ISR(TIMER1_COMPA_vect)
 {
+    e->update();
     switch(t->loopInc())
     {
     case 10:
