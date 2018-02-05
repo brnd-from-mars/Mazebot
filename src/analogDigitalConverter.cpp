@@ -1,8 +1,8 @@
 /*
  * analogDigitalConverter.cpp
- * created by Brendan Berg on 04.01.2018
+ * created by Brendan Berg on 04.02.2018
  * 
- * Copyright (c) 2017 SiemBots
+ * Copyright (c) 2018 SiemBots
  */
 
 
@@ -23,9 +23,6 @@ AnalogDigitalConverter::AnalogDigitalConverter()
 
 void AnalogDigitalConverter::setChannel(uint8_t _channel)
 {
-    if(_channel == currentChannel)
-        return;
-
     // reset MUX bits
     ADMUX &= 0xE0;
     ADCSRB &= 0xF7;

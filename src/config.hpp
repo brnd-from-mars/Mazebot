@@ -1,8 +1,8 @@
 /*
  * config.hpp
- * created by Brendan Berg on 03.01.2018
+ * created by Brendan Berg on 03.02.2018
  * 
- * Copyright (c) 2017 SiemBots
+ * Copyright (c) 2018 SiemBots
  */
 
 
@@ -30,8 +30,18 @@
  * SHARP
  */
 
-#define SHARP_SAMPLES   5
+#define SHARP_SAMPLES   10
 #define SHAPR_FILTER    100
 
 #define WALLLIMIT_RECOG 200
 #define WALLLIMIT_ALIGN 150
+
+
+/*
+ * ACCELEROMETER
+ */
+
+#define ACCEL_SAMPLES   5
+
+#define TILT_UP_LIMIT   345
+#define TILT_DOWN_LIMIT 320
