@@ -9,20 +9,20 @@
 #include "timer.hpp"
 
 
-Timer::Timer(uint16_t _prescaler, uint16_t _top, uint8_t _loopMax)
+Timer::Timer(uint16_t _prescaler, uint16_t _top, uint16_t _loopMax)
 {
     // reset timer/counter control registers
-    TCCR1A = 0;
-    TCCR1B = 0;
-    TCCR1C = 0;
+    TCCR5A = 0;
+    TCCR5B = 0;
+    TCCR5C = 0;
     // reset timer interrupt mask
-    TIMSK1 = 0;
+    TIMSK5 = 0;
 
     // set timer 1 to clear timer on compare mode
-    TCCR1B |= (1<<WGM12);
+    TCCR5B |= (1<<WGM52);
 
     // activate interrupt for compare A
-    TIMSK1 |= (1<<ICIE1) | (1<<OCIE1A);
+    TIMSK5 |= (1<<ICIE5) | (1<<OCIE5A);
 
     // set prescaler and resolution -> frequency
     oldPrescaler = 0;
@@ -39,24 +39,24 @@ void Timer::setPrescaler(uint16_t _prescaler)
     prescaler = _prescaler;
 
     // reset prescale settings
-    TCCR1B &= 0xF8;
+    TCCR5B &= 0xF8;
     
     switch(_prescaler)
     {
     case 1:
-        TCCR1B |= (1<<CS10);
+        TCCR5B |= (1<<CS50);
         break;
     case 8:
-        TCCR1B |= (1<<CS11);
+        TCCR5B |= (1<<CS51);
         break;
     case 64:
-        TCCR1B |= (1<<CS11) | (1<<CS10);
+        TCCR5B |= (1<<CS51) | (1<<CS50);
         break;
     case 256:
-        TCCR1B |= (1<<CS12);
+        TCCR5B |= (1<<CS52);
         break;
     case 1024:
-        TCCR1B |= (1<<CS12) | (1<<CS10);
+        TCCR5B |= (1<<CS52) | (1<<CS50);
         break;
     default:
         prescaler = 0;
@@ -69,8 +69,8 @@ void Timer::setTop(uint16_t _top)
     top = _top;
 
     // set output compare register which indicates the TOP value
-    OCR1AH = (top & 0xFF00) >> 8;
-    OCR1AL = (top & 0x00FF);
+    OCR5AH = (top & 0xFF00) >> 8;
+    OCR5AL = (top & 0x00FF);
 }
 
 void Timer::disable(void)
@@ -107,7 +107,7 @@ bool Timer::isActive(void)
     return (prescaler!=0);
 }
 
-uint8_t Timer::loopInc(void)
+uint16_t Timer::loopInc(void)
 {
     if(loopCnt+1 >= loopMax)
         loopCnt=0;
@@ -117,7 +117,7 @@ uint8_t Timer::loopInc(void)
     return loopCnt;
 }
 
-uint8_t Timer::getLoopCount(void)
+uint16_t Timer::getLoopCount(void)
 {
     return loopCnt;
 }

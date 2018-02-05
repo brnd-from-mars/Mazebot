@@ -17,7 +17,7 @@
 /**
  * @brief A class that controls the main timer
  * 
- * This class sets timer 1 to clear timer on compare mode and provides a fast
+ * This class sets timer 5 to clear timer on compare mode and provides a fast
  * and easy way for changing prescaler and TOP value.
  */
 class Timer
@@ -27,7 +27,7 @@ class Timer
         /**
          * @brief The constructor of the Timer class
          * 
-         * This function sets the timer 1 to clear timer on compare mode and sets its
+         * This function sets the timer 5 to clear timer on compare mode and sets its
          * initial frequency. For more information have a look at the official 
          * Atmega2560 datasheet (Section 17).
          * 
@@ -35,7 +35,7 @@ class Timer
          * @param _top the top value for the counter
          * @param _loopMax the maximum loop count
          */
-        Timer(uint16_t _prescaler, uint16_t _top, uint8_t _loopMax);
+        Timer(uint16_t _prescaler, uint16_t _top, uint16_t _loopMax);
 
         /**
          * @brief The function to set a new prescaler
@@ -104,14 +104,14 @@ class Timer
          * 
          * @return uint8_t the loop count after the change
          */
-        uint8_t loopInc(void);
+        uint16_t loopInc(void);
 
         /**
          * @brief The function that returns the current loop Count
          *
          * @return uint8_t the current loop count
          */
-        uint8_t getLoopCount(void);
+        uint16_t getLoopCount(void);
 
     private:
 
@@ -133,12 +133,12 @@ class Timer
         /**
          * @brief The current loop count
          */
-        uint8_t loopCnt;
+        uint16_t loopCnt;
 
         /**
          * @brief The maximum loop count
          */
-        uint8_t loopMax;
+        uint16_t loopMax;
 };
 
 

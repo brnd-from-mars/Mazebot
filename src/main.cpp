@@ -21,6 +21,10 @@ Timer *t;
 void setup(void)
 {
     Serial.begin(115200);
+
+    DDRB |= (1<<7);
+
+    t = new Timer(8, 1999, 50);
 }
 
 /**
@@ -39,7 +43,7 @@ void loop(void)
  * This is the timer loop that interrupts the main loop at a 1kHz rate.
  * The sensor read-ins and high power led are getting controlled here.
  */
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER5_COMPA_vect)
 {
     switch(t->loopInc())
     {
