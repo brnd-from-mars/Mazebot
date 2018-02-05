@@ -11,11 +11,9 @@
 
 #include "timer.hpp"
 
-#include "pwm.hpp"
 #include "motor.hpp"
 
 Timer *t;
-Motor *m;
 
 /**
  * @brief Arduino setup function
@@ -24,14 +22,6 @@ Motor *m;
  */
 void setup(void)
 {
-    t = new Timer(8, 1999, 50);
-
-    Pwm *p = new Pwm(&PORTG, 5, 0, 2);
-    m = new Motor(&PORTC, 4, 6, p->getDutycycleRegister(), &PINE, 5, &PINA, 7);
-    delete p;
-
-    m->setVelocity(255);
-
     Serial.begin(115200);
 }
 
@@ -53,7 +43,6 @@ void loop(void)
  */
 ISR(TIMER1_COMPA_vect)
 {
-    m->update();
     switch(t->loopInc())
     {
     case 10:

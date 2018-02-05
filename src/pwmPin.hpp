@@ -1,5 +1,5 @@
 /*
- * pwm.hpp
+ * pwmPin.hpp
  * created by Brendan Berg on 04.02.2018
  * 
  * Copyright (c) 2018 SiemBots
@@ -20,7 +20,7 @@
  * This class creates a pwm signal at a given pin. It sets the pin as output and
  * can give a pointer to the register with its dutycycle.
  */
-class Pwm
+class PwmPin
 {
     public:
 
@@ -35,7 +35,7 @@ class Pwm
          * @param _timer the atmega timer (0/1/3/4/5) controlling the pwm pin
          * @param _comparator the comparator (A->1, B->2, C->3) connected to the pwm pin
          */
-        Pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator);
+        PwmPin(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator);
 
         /**
          * @brief The function that returns a pointer to the register

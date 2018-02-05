@@ -1,15 +1,15 @@
 /*
- * pwm.cpp
+ * pwmPin.cpp
  * created by Brendan Berg on 04.02.2018
  * 
  * Copyright (c) 2018 SiemBots
  */
 
 
-#include "pwm.hpp"
+#include "pwmPin.hpp"
 
 
-Pwm::Pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator)
+PwmPin::PwmPin(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _comparator)
 {
     // calculate address of data direction register for pwm pin
     volatile uint8_t *ddr = _port-1;
@@ -78,7 +78,7 @@ Pwm::Pwm(volatile uint8_t *_port, uint8_t _bit, uint8_t _timer, uint8_t _compara
     }
 }
 
-volatile uint8_t* Pwm::getDutycycleRegister()
+volatile uint8_t* PwmPin::getDutycycleRegister()
 {
     return dutycycle;
 }
