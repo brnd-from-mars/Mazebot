@@ -11,8 +11,6 @@
 
 #include "timer.hpp"
 
-#include "motor.hpp"
-
 Timer *t;
 
 /**
