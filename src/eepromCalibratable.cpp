@@ -9,7 +9,7 @@
 #include "eepromCalibratable.hpp"
 
 
-template <typename T>
+template<typename T>
 EepromCalibratable<T>::EepromCalibratable(uint16_t _start, uint8_t _amount)
 {
     start = _start;
@@ -19,7 +19,7 @@ EepromCalibratable<T>::EepromCalibratable(uint16_t _start, uint8_t _amount)
     size = sizeof(T);
 }
 
-template <typename T>
+template<typename T>
 void EepromCalibratable<T>::writeValue(uint8_t _num, T _value)
 {
     // self-explainary
@@ -57,7 +57,7 @@ void EepromCalibratable<T>::writeValue(uint8_t _num, T _value)
     SREG |= (1<<SREG_I);
 }
 
-template <typename T>
+template<typename T>
 T EepromCalibratable<T>::readValue(uint8_t _num)
 {
     // self-explainary
@@ -94,3 +94,6 @@ T EepromCalibratable<T>::readValue(uint8_t _num)
 
     return value;
 }
+
+
+template class EepromCalibratable<uint16_t>;

@@ -7,8 +7,6 @@
 
 
 #include "motorController.hpp"
-#include "config.hpp"
-#include "eepromCalibratable.cpp"
 
 
 MotorController::MotorController(Motor *_fr, Motor *_br, Motor *_bl, Motor *_fl)

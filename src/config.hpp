@@ -32,3 +32,6 @@
 
 #define SHARP_SAMPLES   5
 #define SHAPR_FILTER    100
+
+#define WALLLIMIT_RECOG 200
+#define WALLLIMIT_ALIGN 150

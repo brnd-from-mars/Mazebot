@@ -11,6 +11,7 @@
 
 
 #include <Arduino.h>
+#include "config.hpp"
 
 
 /**
@@ -73,5 +74,6 @@ class AnalogDigitalConverter
         uint8_t currentChannel;
 
 };
+
 
 #endif

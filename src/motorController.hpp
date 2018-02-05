@@ -11,6 +11,8 @@
 
 
 #include <Arduino.h>
+#include "config.hpp"
+
 #include "motor.hpp"
 #include "eepromCalibratable.hpp"
 

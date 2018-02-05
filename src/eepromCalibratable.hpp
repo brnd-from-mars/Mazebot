@@ -11,6 +11,7 @@
 
 
 #include <Arduino.h>
+#include "config.hpp"
 
 
 /**
@@ -24,7 +25,6 @@
 template<typename T>
 class EepromCalibratable
 {
-    
     public:
 
         /**
