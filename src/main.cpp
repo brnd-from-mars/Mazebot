@@ -12,6 +12,9 @@
 #include "timer.hpp"
 
 
+Timer *t;
+
+
 /**
  * @brief Arduino setup function
  * 
@@ -19,7 +22,9 @@
  */
 void setup(void)
 {
-    Timer t = Timer(8, 1999);
+    t = new Timer(8, 1999, 50);
+
+    Serial.begin(115200);
 }
 
 /**
@@ -30,6 +35,8 @@ void setup(void)
  */
 void loop(void)
 {
+    Serial.println(t->getLoopCount());
+    DDRB |= (1<<7);
 }
 
 /**
@@ -40,4 +47,13 @@ void loop(void)
  */
 ISR(TIMER1_COMPA_vect)
 {
+    switch(t->loopInc())
+    {
+    case 10:
+        PORTB |= (1<<7);
+        break;
+    case 20:
+        PORTB &= ~(1<<7);
+        break;
+    }
 }
