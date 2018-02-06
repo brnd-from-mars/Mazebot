@@ -12,13 +12,12 @@
 ToggleSwitch::ToggleSwitch(volatile uint8_t *_pIn, uint8_t _bit, bool _inverted)
 {
     pIn = _pIn;
-
     bit = _bit;
-
     inverted = _inverted;
 }
 
 bool ToggleSwitch::getState(void)
 {
+    // read inout state and invert if necessary
     return ((bool)(*pIn & (1<<bit))) != inverted;
 }

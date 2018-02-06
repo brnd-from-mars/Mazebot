@@ -11,7 +11,20 @@
 
 #include "timer.hpp"
 
+#include "toggleSwitch.hpp"
+#include "button.hpp"
+
+#include "pwmPin.hpp"
+#include "rgb.hpp"
+#include "led.hpp"
+
 Timer *t;
+
+Button *b;
+
+ToggleSwitch *ts;
+
+Led *led;
 
 /**
  * @brief Arduino setup function
@@ -25,6 +38,18 @@ void setup(void)
     DDRB |= (1<<7);
 
     t = new Timer(8, 1999, 50);
+
+    PwmPin *pr = new PwmPin(&PORTH, 5, 4, 3);
+    PwmPin *pg = new PwmPin(&PORTH, 6, 2, 2);
+    PwmPin *pb = new PwmPin(&PORTB, 4, 2, 1);
+
+    RGB rgb = RGB(pr->getDutycycleRegister(), pg->getDutycycleRegister(), pb->getDutycycleRegister());
+
+    PwmPin *pl = new PwmPin(&PORTB, 7, 0, 1);
+
+    led = new Led(pl->getDutycycleRegister());
+
+    rgb.set(0, 0, 64);
 }
 
 /**
@@ -35,6 +60,11 @@ void setup(void)
  */
 void loop(void)
 {
+    b->update();
+    Serial.print(ts->getState());
+    Serial.print(",");
+    Serial.println(b->getState());
+    delay(10);
 }
 
 /**
@@ -48,10 +78,10 @@ ISR(TIMER5_COMPA_vect)
     switch(t->loopInc())
     {
     case 10:
-        PORTB |= (1<<7);
+        led->set(255);
         break;
     case 20:
-        PORTB &= ~(1<<7);
+        led->set(0);
         break;
     }
 }
