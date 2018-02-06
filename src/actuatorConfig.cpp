@@ -9,7 +9,7 @@
 #include "actuatorConfig.hpp"
 
 
-void actuatorInit()
+void actuatorInit(void)
 {
     // motor front right
     PwmPin pFR = PwmPin(&PORTG, 5, 0, 2);

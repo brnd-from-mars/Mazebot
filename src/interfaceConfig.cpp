@@ -9,7 +9,7 @@
 #include "interfaceConfig.hpp"
 
 
-void interfaceInit()
+void interfaceInit(void)
 {
     // toggle switch right
     toggleSwitch[TOGGLE_RIGHT] = new ToggleSwitch(&PINL, 5, false);
@@ -50,7 +50,7 @@ void interfaceInit()
     led = new Led(pL.getDutycycleRegister());
 }
 
-void interfaceUpdate()
+void interfaceUpdate(void)
 {
     for(uint8_t i=0; i<5; i++)
         button[i]->update();

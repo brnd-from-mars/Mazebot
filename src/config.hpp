@@ -48,6 +48,16 @@
 
 
 /*
+ * RAMP
+ */
+
+#define RAMP_MAX_MAYBE  200
+#define RAMP_DECREMENT  4
+#define RAMP_UP_MIN     60
+#define RAMP_DOWN_MIN   30
+
+
+/*
  * TOGGLESWITCH
  */
 

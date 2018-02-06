@@ -44,13 +44,13 @@ extern Led *led;
 /**
  * @brief The function that sets up all interface elements
  */
-void interfaceInit();
+void interfaceInit(void);
 
 /**
  * @brief The function that updates the interface elements in every main-loop run-through
  * 
  */
-void interfaceUpdate();
+void interfaceUpdate(void);
 
 
 #endif

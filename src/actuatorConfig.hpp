@@ -27,7 +27,7 @@ extern MotorController *motorController;
 /**
  * @brief The function that sets up the motors and a MotorController object
  */
-void actuatorInit();
+void actuatorInit(void);
 
 
 #endif
