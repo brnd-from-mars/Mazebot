@@ -45,3 +45,10 @@
 
 #define TILT_UP_LIMIT   345
 #define TILT_DOWN_LIMIT 320
+
+
+/*
+ * BUTTON
+ */
+
+#define DEBOUNCING      50
