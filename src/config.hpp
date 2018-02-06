@@ -15,10 +15,10 @@
 #define BACK            2
 #define LEFT            3
 
-#define FRONTRIGHT      0
-#define BACKRIGHT       1
-#define BACKLEFT        2
-#define FRONTLEFT       3
+#define FRONT_RIGHT     0
+#define BACK_RIGHT      1
+#define BACK_LEFT       2
+#define FRONT_LEFT      3
 
 #define NORTH           0
 #define EAST            1
@@ -48,7 +48,22 @@
 
 
 /*
+ * TOGGLESWITCH
+ */
+
+#define TOGGLE_RIGHT    0
+#define TOGGLE_CENTER   1
+#define TOGGLE_LEFT     2
+
+
+/*
  * BUTTON
  */
 
 #define DEBOUNCING      50
+
+#define BUTTON_CENTER   0
+#define BUTTON_UP       1
+#define BUTTON_RIGHT    2
+#define BUTTON_DOWN     3
+#define BUTTON_LEFT     4

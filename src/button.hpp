@@ -47,7 +47,7 @@ class Button : protected ToggleSwitch
          * 
          * This function should not get called by the timer interrupt.
          * If so, and the timer interrupts the main loop multiple times during one
-         * runthrough, the detected press will maybe get discarded.
+         * run-through, the detected press will maybe get discarded.
          */
         void update(void);
 

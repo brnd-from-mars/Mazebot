@@ -11,20 +11,19 @@
 
 #include "timer.hpp"
 
-#include "toggleSwitch.hpp"
-#include "button.hpp"
+#include "actuatorConfig.hpp"
+#include "interfaceConfig.hpp"
 
-#include "pwmPin.hpp"
-#include "rgb.hpp"
-#include "led.hpp"
 
 Timer *t;
 
-Button *b;
+MotorController *motorController;
 
-ToggleSwitch *ts;
-
+ToggleSwitch *toggleSwitch[3];
+Button *button[5];
+RGB *rgb;
 Led *led;
+
 
 /**
  * @brief Arduino setup function
@@ -35,21 +34,10 @@ void setup(void)
 {
     Serial.begin(115200);
 
-    DDRB |= (1<<7);
-
     t = new Timer(8, 1999, 50);
 
-    PwmPin *pr = new PwmPin(&PORTH, 5, 4, 3);
-    PwmPin *pg = new PwmPin(&PORTH, 6, 2, 2);
-    PwmPin *pb = new PwmPin(&PORTB, 4, 2, 1);
-
-    RGB rgb = RGB(pr->getDutycycleRegister(), pg->getDutycycleRegister(), pb->getDutycycleRegister());
-
-    PwmPin *pl = new PwmPin(&PORTB, 7, 0, 1);
-
-    led = new Led(pl->getDutycycleRegister());
-
-    rgb.set(0, 0, 64);
+    actuatorInit();
+    interfaceInit();
 }
 
 /**
@@ -60,11 +48,20 @@ void setup(void)
  */
 void loop(void)
 {
-    b->update();
-    Serial.print(ts->getState());
-    Serial.print(",");
-    Serial.println(b->getState());
-    delay(10);
+    interfaceUpdate();
+
+    uint8_t r=0;
+    uint8_t g=0;
+    uint8_t b=0;
+
+    if(toggleSwitch[TOGGLE_RIGHT]->getState())
+        r=32;
+    if(toggleSwitch[TOGGLE_CENTER]->getState())
+        g=32;
+    if(toggleSwitch[TOGGLE_LEFT]->getState())
+        b=32;
+
+    rgb->set(r, g, b);
 }
 
 /**
