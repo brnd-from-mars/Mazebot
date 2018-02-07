@@ -18,9 +18,15 @@ Sharp::Sharp(AnalogDigitalConverter *_adc, uint8_t _channel)
         lastValues[i] = lastValue;
 }
 
-void Sharp::read()
+void Sharp::update()
 {
     AnalogPin::read();
+
+    if(lastValue>SHARP_MAX)
+        return;
+
+    if(lastValue < SHARP_MIN)
+        lastValue = SHARP_MIN;
 
     // shift values
     for(uint8_t i=0; i<SHARP_SAMPLES-1; i++)
@@ -37,10 +43,6 @@ uint16_t Sharp::getDistance(void)
     // calculate sum
     for(uint8_t i=0; i<SHARP_SAMPLES; i++)
         sum += lastValues[i];
-
-    // apply filter
-    if(sum < SHARP_SAMPLES*SHAPR_FILTER)
-        sum = SHARP_SAMPLES*SHAPR_FILTER;
 
     // return and calculate the average
     return (uint16_t)(sum/SHARP_SAMPLES);

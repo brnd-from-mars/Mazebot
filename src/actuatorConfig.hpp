@@ -30,4 +30,7 @@ extern MotorController *motorController;
 void actuatorInit(void);
 
 
+void actuatorUpdate(void);
+
+
 #endif

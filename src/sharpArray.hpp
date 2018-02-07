@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include "config.hpp"
 
+#include <stdarg.h>
 #include "sharp.hpp"
 
 
@@ -29,26 +30,27 @@ class SharpArray
     public:
 
         /**
-         * @brief A constructor of the class
+         * @brief The constructor of the SharpArray class
          * 
-         * This constructor creates N new sharps and stores the pointers to them.
+         * This constructor stores a pointer to the ADC such that this
+         * class will later be able to create new sharp objects.
          * 
          * @param _adc a pointer to a adc object
-         * @param _sharpChannels the multiplexer channels the sharp is connected to
          */
-        SharpArray(AnalogDigitalConverter *_adc, uint8_t _sharpChannels[N]);
+        SharpArray(AnalogDigitalConverter *_adc);
 
         /**
-         * @brief A constructor of the class
+         * @brief The function that creates a new pointer to a sharp
+         * and returns a pointer to it
          * 
-         * This constructor stores pointer to sharps created outside of the class.
-         * 
-         * @param _sharp an array of pointers to the sharps
+         * @param i the index of the sharp
+         * @param _channel the channel of the pin the sharp is connected to
+         * @return Sharp* a pointer to the created sharp
          */
-        SharpArray(Sharp *_sharp[N]);
+        Sharp* setSharp(uint8_t i, uint8_t _channel);
 
         /**
-         * @brief This function returns a pointer to the specified sharp
+         * @brief The function that returns a pointer to a specified sharp
          * 
          * @param i the index of the sharp
          * @return Sharp* the pointer to the sharp
@@ -61,10 +63,33 @@ class SharpArray
          * @return true all sharps have detected a wall
          * @return false not all sharps have detected a wall
          */
-        bool entireWall();
+        bool entireWall(void);
+
+        /**
+         * @brief The function that calculates the average measured distance for all sharps
+         * 
+         * @return int16_t the average distance (-1, if no wall detected)
+         */
+        int16_t average(void);
+
+        /**
+         * @brief The function that calculates the misalignment between sharp array and wall
+         * 
+         * This function calculates the misalignment by calculating the difference between
+         * the first and last sharp
+         * 
+         * @return int16_t the difference between first and last sharp (-1, if no wall detected)
+         */
+        int16_t misalignment(void);
 
     private:
 
+        /**
+         * @brief A pointer to a adc object
+         * 
+         */
+        AnalogDigitalConverter *adc;
+        
         /**
          * @brief An array of pointers to the sharps
          */

@@ -35,7 +35,7 @@ class Timer
          * @param _top the top value for the counter
          * @param _loopMax the maximum loop count
          */
-        Timer(uint16_t _prescaler, uint16_t _top, uint16_t _loopMax);
+        Timer(uint16_t _prescaler, uint16_t _top);
 
         /**
          * @brief The function to set a new prescaler
@@ -99,20 +99,6 @@ class Timer
          */
         bool isActive(void);
 
-        /**
-         * @brief The function that increments/resets the loop count
-         * 
-         * @return uint8_t the loop count after the change
-         */
-        uint16_t loopInc(void);
-
-        /**
-         * @brief The function that returns the current loop Count
-         *
-         * @return uint8_t the current loop count
-         */
-        uint16_t getLoopCount(void);
-
     private:
 
         /**
@@ -129,16 +115,6 @@ class Timer
          * @brief The current TOP value
          */
         uint16_t top;
-
-        /**
-         * @brief The current loop count
-         */
-        uint16_t loopCnt;
-
-        /**
-         * @brief The maximum loop count
-         */
-        uint16_t loopMax;
 };
 
 

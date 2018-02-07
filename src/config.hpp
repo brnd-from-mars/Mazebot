@@ -30,11 +30,20 @@
  * SHARP
  */
 
-#define SHARP_SAMPLES   10
-#define SHAPR_FILTER    100
+#define SHARP_SAMPLES   5
+#define SHARP_MIN       100
+#define SHARP_MAX       600
 
 #define WALLLIMIT_RECOG 200
 #define WALLLIMIT_ALIGN 150
+
+
+/*
+ * LIGHT
+ */
+
+#define DARKNESS_BLACK  800
+#define DARKNESS_SILVER 600
 
 
 /*
@@ -51,10 +60,10 @@
  * RAMP
  */
 
-#define RAMP_MAX_MAYBE  200
+#define RAMP_MAX_MAYBE  2000
 #define RAMP_DECREMENT  4
-#define RAMP_UP_MIN     60
-#define RAMP_DOWN_MIN   30
+#define RAMP_UP_MIN     600
+#define RAMP_DOWN_MIN   600
 
 
 /*

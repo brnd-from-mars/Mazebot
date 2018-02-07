@@ -40,17 +40,16 @@ class Sharp : protected AnalogPin
         Sharp(AnalogDigitalConverter *_adc, uint8_t _channel);
 
         /**
-         * @brief A function that stores the measured values
+         * @brief A function that flters and stores the measured values
          */
-        void read(void);
+        void update(void);
 
         /**
          * @brief A function that returns the smoothed out distance
          * 
-         * This function filters the sharp values with the minimum
-         * value of config->SHARP_FILTER  and calculates the average
-         * of the last config->SHARPS_SAMPLES samples.
-
+         * This function smooths out the sharp values by calculating
+         * the average of a certain amount of samples.
+         * 
          * @return uint16_t the enhenced distacne value
          */
         uint16_t getDistance(void);

@@ -75,12 +75,12 @@ class Ramp : protected Accelerometer
         /**
          * @brief a confidence score for driving on a ramp upwards
          */
-        uint8_t maybeOnRampUp;
+        int16_t maybeOnRampUp;
 
         /**
          * @brief A confidence score for driving on a ramp downwards
          */
-        uint8_t maybeOnRampDown;
+        int16_t maybeOnRampDown;
 
 };
 

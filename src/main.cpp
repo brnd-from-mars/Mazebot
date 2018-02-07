@@ -11,19 +11,36 @@
 
 #include "timer.hpp"
 
-#include "actuatorConfig.hpp"
+#include "sensorConfig.hpp"
 #include "interfaceConfig.hpp"
+#include "actuatorConfig.hpp"
 
 
 Timer *t;
 
-MotorController *motorController;
+Ramp *ramp;
+
+Light *light;
+
+Sharp *sharp[9];
+
+SharpArray<3> *saFront;
+SharpArray<2> *saRight;
+SharpArray<2> *saBack;
+SharpArray<2> *saLeft;
+
+Melexis *meLeft;
+Melexis *meRight;
 
 ToggleSwitch *toggleSwitch[3];
 Button *button[5];
 RGB *rgb;
 Led *led;
 
+MotorController *motorController;
+
+
+uint8_t s;
 
 /**
  * @brief Arduino setup function
@@ -32,12 +49,15 @@ Led *led;
  */
 void setup(void)
 {
-    Serial.begin(115200);
+    Serial.begin(57600);
 
-    t = new Timer(8, 1999, 50);
+    t = new Timer(8, 1999);
 
-    actuatorInit();
+    s = 0;
+
+    sensorInit();
     interfaceInit();
+    actuatorInit();
 }
 
 /**
@@ -49,19 +69,7 @@ void setup(void)
 void loop(void)
 {
     interfaceUpdate();
-
-    uint8_t r=0;
-    uint8_t g=0;
-    uint8_t b=0;
-
-    if(toggleSwitch[TOGGLE_RIGHT]->getState())
-        r=32;
-    if(toggleSwitch[TOGGLE_CENTER]->getState())
-        g=32;
-    if(toggleSwitch[TOGGLE_LEFT]->getState())
-        b=32;
-
-    rgb->set(r, g, b);
+    sensorUpdateMain();
 }
 
 /**
@@ -72,13 +80,6 @@ void loop(void)
  */
 ISR(TIMER5_COMPA_vect)
 {
-    switch(t->loopInc())
-    {
-    case 10:
-        led->set(255);
-        break;
-    case 20:
-        led->set(0);
-        break;
-    }
+    sensorUpdateTimer();
+    actuatorUpdate();
 }

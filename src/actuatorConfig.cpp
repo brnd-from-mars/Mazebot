@@ -29,3 +29,8 @@ void actuatorInit(void)
 
     motorController = new MotorController(mFR, mBR, mBL, mFL);
 }
+
+void actuatorUpdate(void)
+{
+    motorController->update();
+}

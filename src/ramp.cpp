@@ -9,7 +9,7 @@
 #include "ramp.hpp"
 
 
-Ramp(AnalogDigitalConverter *_adc, uint8_t _channel)
+Ramp::Ramp(AnalogDigitalConverter *_adc, uint8_t _channel)
     : Accelerometer::Accelerometer(_adc, _channel)
 {
     rampState = 0;
@@ -49,22 +49,21 @@ void Ramp::update(void)
     {
         // decrement confidence counter
         if(maybeOnRampDown-RAMP_DECREMENT > 0)
-            maybeOnRampUp -= RAMP_DECREMENT;
+            maybeOnRampDown -= RAMP_DECREMENT;
         else
-            maybeOnRampUp = 0;
+            maybeOnRampDown = 0;
     }
 
     // if certain that on ramp (and not speed bumper)
     if(maybeOnRampUp >= RAMP_UP_MIN)
-        // set state
         rampState = 1;
     else if(maybeOnRampDown >= RAMP_DOWN_MIN)
-        rampState -1;
+        rampState = -1;
     else
         rampState = 0;
 }
 
 int8_t Ramp::getState(void)
 {
-    return rampState
+    return rampState;
 }

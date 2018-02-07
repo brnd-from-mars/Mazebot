@@ -9,7 +9,7 @@
 #include "timer.hpp"
 
 
-Timer::Timer(uint16_t _prescaler, uint16_t _top, uint16_t _loopMax)
+Timer::Timer(uint16_t _prescaler, uint16_t _top)
 {
     // reset timer/counter control registers
     TCCR5A = 0;
@@ -28,10 +28,6 @@ Timer::Timer(uint16_t _prescaler, uint16_t _top, uint16_t _loopMax)
     oldPrescaler = 0;
     Timer::setPrescaler(_prescaler);
     Timer::setTop(_top);
-
-    // set maximum loop count
-    loopMax = _loopMax;
-    loopCnt = 0;
 }
 
 void Timer::setPrescaler(uint16_t _prescaler)
@@ -105,19 +101,4 @@ long Timer::getFrequency(void)
 bool Timer::isActive(void)
 {
     return (prescaler!=0);
-}
-
-uint16_t Timer::loopInc(void)
-{
-    if(loopCnt+1 >= loopMax)
-        loopCnt=0;
-    else
-        loopCnt++;
-
-    return loopCnt;
-}
-
-uint16_t Timer::getLoopCount(void)
-{
-    return loopCnt;
 }

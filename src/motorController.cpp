@@ -13,24 +13,52 @@ MotorController::MotorController(Motor *_fr, Motor *_br, Motor *_bl, Motor *_fl)
     : EepromCalibratable<uint16_t>::EepromCalibratable(0xA00, 4)
 {
     // save pointers to all 4 motors
-    motors[FRONT_RIGHT] = _fr;
-    motors[BACK_RIGHT]  = _br;
-    motors[BACK_LEFT]   = _bl;
-    motors[FRONT_LEFT]  = _fl;
+    motor[FRONT_RIGHT] = _fr;
+    motor[BACK_RIGHT]  = _br;
+    motor[BACK_LEFT]   = _bl;
+    motor[FRONT_LEFT]  = _fl;
 
     // calculate velocity factor for error calibration
 }
 
 void MotorController::setVelocityRight(int16_t velocity)
 {
-    motors[FRONT_RIGHT]->setVelocity(velocity);
-    motors[BACK_RIGHT]->setVelocity(velocity);
+    motor[FRONT_RIGHT]->setVelocity(velocity);
+    motor[BACK_RIGHT]->setVelocity(velocity);
 }
 
 void MotorController::setVelocityLeft(int16_t velocity)
 {
-    motors[FRONT_LEFT]->setVelocity(velocity);
-    motors[BACK_LEFT]->setVelocity(velocity);
+    motor[FRONT_LEFT]->setVelocity(velocity);
+    motor[BACK_LEFT]->setVelocity(velocity);
+}
+
+void MotorController::brake(void)
+{
+    for(uint8_t i=0; i<4; i++)
+        motor[i]->brake();
+}
+
+void MotorController::update(void)
+{
+    for(uint8_t i=0; i<4; i++)
+        motor[i]->update();
+}
+
+long MotorController::getAverageEncoderSteps(void)
+{
+    long sum;
+
+    for(uint8_t i=0; i<4; i++)
+        sum += abs(motor[i]->getSteps());
+
+    return (long)(sum / 4);
+}
+
+void MotorController::reset(void)
+{
+    for(uint8_t i=0; i<4; i++)
+        motor[i]->reset();
 }
 
 void MotorController::startCalibration(void)

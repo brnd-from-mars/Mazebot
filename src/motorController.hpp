@@ -55,6 +55,30 @@ class MotorController : protected EepromCalibratable<uint16_t>
         void setVelocityLeft(int16_t velocity);
 
         /**
+         * @brief A convinience function to brake all motors
+         */
+        void brake(void);
+
+        /**
+         * @brief The function that updates the encoder step counter for each motor
+         * 
+         * This function should get called from the timing loop.
+         */
+        void update(void);
+
+        /**
+         * @brief The function that returns the average encoder steps covered since the last reset
+         * 
+         * @return long the average step count
+         */
+        long getAverageEncoderSteps(void);
+
+        /**
+         * @brief The function that resets the encoder step counter for each motor
+         */
+        void reset(void);
+
+        /**
          * @brief A function that starts the motor calibration process
          */
         void startCalibration(void);
@@ -69,7 +93,7 @@ class MotorController : protected EepromCalibratable<uint16_t>
         /**
          * @brief Pointers to all 4 motors
          */
-        Motor *motors[4];
+        Motor *motor[4];
 
 };
 
