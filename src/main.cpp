@@ -70,7 +70,8 @@ void servoRight() {
 }
 
 void setup() {
-    Serial.begin(19200);
+    Serial.begin(38400);
+    Serial3.begin(57600);
 
     // init everything
     analogInit();
@@ -96,6 +97,8 @@ void setup() {
 }
 
 void loop() {
+    Serial3.println("Hello, world!");
+
     TIMER_STOP
     rampInterrupt();
     TIMER_START

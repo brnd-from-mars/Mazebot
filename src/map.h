@@ -6,12 +6,12 @@
 #include "analog.h"
 
 
-struct Point {
+typedef struct Point {
     int8_t x;
     int8_t y;
 };
 
-struct Field {
+typedef struct Field {
     /*
      * by value
      * 0 no
@@ -41,19 +41,19 @@ struct Field {
     uint8_t wallData : 4;
 };
 
-struct Floor {
-    struct Field fields[FLOOR_SIZE][FLOOR_SIZE];
+typedef struct Floor {
+    Field fields[FLOOR_SIZE][FLOOR_SIZE];
 };
 
-struct Floor arena[FLOOR_COUNT];
+Floor arena[FLOOR_COUNT];
 
-struct Floor backup[FLOOR_COUNT];
+Floor backup[FLOOR_COUNT];
 
-struct Floor *currentFloor;
+Floor *currentFloor;
 
-struct Field *currentField;
+Field *currentField;
 
-struct Point pos;
+Point pos;
 
 uint8_t heading;
 
@@ -69,7 +69,7 @@ void mapCreatorPushY();
 
 void mapCreatorBlackField();
 
-struct Point mapGetAdjacentPosition(uint8_t dir, bool allowPush);
+Point mapGetAdjacentPosition(uint8_t dir, bool allowPush);
 
 bool mapAllowRightTurn();
 

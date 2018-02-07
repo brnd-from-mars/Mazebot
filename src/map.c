@@ -89,20 +89,20 @@ void mapCreatorPushY() {
 }
 
 void mapCreatorBlackField() {
-    struct Point frontPoint = mapGetAdjacentPosition(FRONT, true);
-    struct Field *frontField = &((*currentFloor).fields[frontPoint.y][frontPoint.x]);
+    Point frontPoint = mapGetAdjacentPosition(FRONT, true);
+    Field *frontField = &((*currentFloor).fields[frontPoint.y][frontPoint.x]);
 
     (*frontField).type = 1;
     (*frontField).visited = 1;
 }
 
-struct Point mapGetAdjacentPosition(uint8_t dir, bool allowPush) {
+Point mapGetAdjacentPosition(uint8_t dir, bool allowPush) {
     uint8_t global = (dir + heading + 1)%4;
 
     uint8_t dx = abs(global-2)-1;
     uint8_t dy = abs(global-1)-1;
 
-    struct Point aPos;
+    Point aPos;
 
     aPos.x = pos.x + dx;
     aPos.y = pos.y + dy;
@@ -131,12 +131,12 @@ struct Point mapGetAdjacentPosition(uint8_t dir, bool allowPush) {
 }
 
 bool mapAllowRightTurn() {
-    struct Point rightPoint = mapGetAdjacentPosition(RIGHT, false);
+    Point rightPoint = mapGetAdjacentPosition(RIGHT, false);
     
     if((rightPoint.x == -1) || (rightPoint.y == -1))
         return true;
 
-    struct Field *rightField = &((*currentFloor).fields[rightPoint.y][rightPoint.x]);
+    Field *rightField = &((*currentFloor).fields[rightPoint.y][rightPoint.x]);
 
     if((*rightField).visited && (*rightField).type==1)
         return false;
