@@ -5,11 +5,10 @@
 #include <Arduino.h>
 #include "config.h"
 #include "analog.h"
+#include "light.h"
 
 #include <stdlib.h>
 
-
-int memoryCounter;
 
 typedef struct Point {
     int8_t x : 4;
@@ -38,7 +37,6 @@ typedef struct Field {
     int8_t score;
 
     struct Field *next;
-    struct Field *prev;
 } Field;
 
 typedef struct Floor {
@@ -70,6 +68,8 @@ Field* mapFindField(int8_t x, int8_t y);
 void mapRotate(int8_t amount);
 
 void mapForward();
+
+void mapFrontFieldBlack();
 
 void mapUpdate();
 

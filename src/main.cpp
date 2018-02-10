@@ -4,10 +4,10 @@
 extern "C" {
 #endif
 #include "analog.h"
-#include "black.h"
 #include "drive.h"
 #include "driveStateMachine.h"
 #include "encoder.h"
+#include "light.h"
 #include "map.h"
 #include "melexis.h"
 #include "motor.h"
@@ -26,7 +26,7 @@ Servo kitdropper;
 
 void servoInit() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
     delay(1000);
@@ -40,7 +40,7 @@ void servoInit() {
 
 void servoLeft() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
     delay(400);
@@ -56,7 +56,7 @@ void servoLeft() {
 
 void servoRight() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_RIGHT);
     delay(400);
@@ -76,9 +76,9 @@ void setup() {
 
     // init everything
     analogInit();
-    blackInit();
     driveSMInit();
     encoderInit();
+    lightInit();
     melexisInit();
     motorInit();
     navigationInit();
@@ -90,6 +90,9 @@ void setup() {
     // timer
     timerInit();
     delay(400);
+
+    Serial3.print(isSilver);
+    Serial3.println(isBlack);
 
     // map
     mapInit();
@@ -103,10 +106,6 @@ void setup() {
 void loop() {
     melexisInterrupt();
 
-    //Serial3.println();
-    //Serial3.print("MC: ");
-    //Serial3.println(memoryCounter);
-
     TIMER_STOP
     rampInterrupt();
     TIMER_START
@@ -118,6 +117,12 @@ void loop() {
     } else {
         rgbOff(0);
         motorBrake();
+
+        Serial.print(darknessLeft);
+        Serial.println(darknessRight);
+
+        Serial3.print(isSilver);
+        Serial3.println(isBlack);
     }
 
     if(victimSetKitdropper == 1) {

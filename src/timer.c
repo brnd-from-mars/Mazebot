@@ -31,10 +31,10 @@ ISR( TIMER5_COMPA_vect ) {
     switch(loopCnt) {
 #ifdef BLACK_RECOGNITION
     case 10:
-        blackPrepare();
+        lightPrepare();
         break;
     case 15:
-        blackMeasure();
+        lightMeasure();
         break;
 #endif
     case 50:

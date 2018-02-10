@@ -3,6 +3,7 @@
 
 void navigationInit() {
     enableNavigation = true;
+    blackEscaping = false;
     lastAction = -1;
     lastRotateState = -1;
     lastForwardState = -1;
@@ -10,6 +11,21 @@ void navigationInit() {
 
 
 void navigate() {
+    if(isBlack && !blackEscaping) {
+        motorBrake();
+        int distanceEnc = distanceCoveredEnc();
+        encoderReset();
+        serialPrintInt(1000);
+        mapFrontFieldBlack();
+        serialPrintInt(2000);
+        startForwardEnc(-distanceEnc);
+        serialPrintInt(3000);
+        lastAction = 4;
+        serialPrintInt(4000);
+        blackEscaping = true;
+        serialPrintInt(5000);
+    }
+
     if(rotateState==-1 && lastRotateState!=rotateState)
         navigationUpdateMap(lastAction);
 
@@ -57,6 +73,7 @@ void navigate() {
 }
 
 void navigationUpdateMap(int8_t action) {
+    blackEscaping = false;
     switch(action) {
     case FRONT:
         mapForward();

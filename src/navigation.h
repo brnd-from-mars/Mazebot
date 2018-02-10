@@ -4,12 +4,15 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "map.h"
 #include "driveStateMachine.h"
+#include "map.h"
+#include "motor.h"
 
 
 
 bool enableNavigation;
+
+bool blackEscaping;
 
 int8_t lastAction;
 

@@ -28,7 +28,6 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
 
     if(startField) {
         new->next = NULL;
-        new->prev = NULL;
         currentFloor->start = new;
         currentFloor->end = new;
     } else {
@@ -64,7 +63,6 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
         return NULL;
     } else if (!startField) {
         new->next = NULL;
-        new->prev = currentFloor->end;
         currentFloor->end->next = new;
         currentFloor->end = new;
     }
@@ -119,9 +117,31 @@ void mapForward() {
     mapUpdate();
 }
 
+void mapFrontFieldBlack() {
+    serialPrintInt(41000);
+    Point cP = {.x=currentField->x, .y=currentField->y};
+    serialPrintInt(42000);
+    Point fP = mapGetAdjacentPositionLocal(cP, FRONT);
+    serialPrintInt(43000);
+
+    Field *fF = mapFindField(fP.x, fP.y);
+    serialPrintInt(44000);
+
+    if(fF != NULL)
+        fF->type = 2;
+
+    serialPrintInt(45000);
+}
+
 void mapUpdate() {
     Point cP = {.x=currentField->x, .y=currentField->y};
-    currentField->type = 1;
+    
+    if(isBlack)
+        currentField->type = 2;
+    else if(isSilver)
+        currentField->type = 3;
+    else
+        currentField->type = 1;
 
     uint8_t walldata = getWallData(heading);
 
@@ -139,9 +159,19 @@ void mapUpdate() {
         else {
             // but no link to another field
             if(currentField->neighbors[dir]==NULL) {
-                // then create and link field
                 Point aP = mapGetAdjacentPositionGlobal(cP, dir);
-                mapCreateField(aP.x, aP.y, false);
+                Field *aF = mapFindField(aP.x, aP.y);
+                // but field exists
+                if(aF!=NULL) {
+                    // wild ERROR appeared
+                    // -> map corrupted
+                    // link them anyway
+                    currentField->neighbors[dir] = aF;
+                    aF->neighbors[(dir+2)%4] = currentField;
+                } else {
+                    // then create and link field
+                    mapCreateField(aP.x, aP.y, false);
+                }
             }
         }
     }
@@ -153,7 +183,9 @@ AdjacentScores mapGetAdjacentScores() {
     bool flag = false;
 
     do {
-        if(fieldPtr->type != 0)
+        if(fieldPtr->type == 2)
+            fieldPtr->score = -1;
+        else if(fieldPtr->type != 0)
             fieldPtr->score = 0;
         else {
             fieldPtr->score = 127;
