@@ -33,13 +33,10 @@ ISR( TIMER5_COMPA_vect ) {
     case 10:
         blackPrepare();
         break;
-    case 20:
+    case 15:
         blackMeasure();
         break;
 #endif
-    case 30:
-        melexisInterrupt();
-        break;
     case 50:
         loopCnt = 0;
         break;

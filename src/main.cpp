@@ -6,6 +6,7 @@ extern "C" {
 #include "analog.h"
 #include "black.h"
 #include "drive.h"
+#include "driveStateMachine.h"
 #include "encoder.h"
 #include "map.h"
 #include "melexis.h"
@@ -71,11 +72,12 @@ void servoRight() {
 
 void setup() {
     Serial.begin(38400);
-    Serial3.begin(57600);
+    Serial3.begin(38400);
 
     // init everything
     analogInit();
     blackInit();
+    driveSMInit();
     encoderInit();
     melexisInit();
     motorInit();
@@ -94,10 +96,19 @@ void setup() {
 
     // servo
     servoInit();
+
+    Serial3.println("START");
 }
 
 void loop() {
-    Serial3.println("Hello, world!");
+    melexisInterrupt();
+
+    Serial.println(melexis[1].value);
+    Serial.println(melexis[3].value);
+
+    //Serial3.println();
+    //Serial3.print("MC: ");
+    //Serial3.println(memoryCounter);
 
     TIMER_STOP
     rampInterrupt();
@@ -105,44 +116,11 @@ void loop() {
 
     if(toggleswitch[0].value) {
         victimRecognition();
-        if(enableNavigation) {
-            if(rampState==0)
-                navigationRightWall();
-            else if(rampState==1) {
-                drive(160, 0.5, 0.02, 1.0);
-                rgbSet(64, 64, 0, 0);
-            } else {
-                drive(80, 0.5, 0.02, 1.0);
-                rgbSet(64, 64, 0, 0);
-            }
-        }
+        if(enableNavigation)
+            navigate();
     } else {
         rgbOff(0);
         motorBrake();
-    }
-
-    if(toggleswitch[1].value) {
-        Serial.print("hdg: ");
-        Serial.print(heading);
-        Serial.print(" y: ");
-        Serial.print(pos.y);
-        Serial.print(" x: ");
-        Serial.println(pos.x);
-        for(uint8_t y=0; y<FLOOR_SIZE; y++) {
-            for(uint8_t x=0; x<FLOOR_SIZE; x++) {
-                Serial.print("y: ");
-                Serial.print(y);
-                Serial.print(" x: ");
-                Serial.print(x);
-                Serial.print(" visited: ");
-                Serial.print(arena[0].fields[y][x].visited, BIN);
-                Serial.print(" type ");
-                Serial.print(arena[0].fields[y][x].type);
-                Serial.print(" wallData: ");
-                Serial.println(arena[0].fields[y][x].wallData, BIN);
-            }
-        }
-        Serial.println();
     }
 
     if(victimSetKitdropper == 1) {
