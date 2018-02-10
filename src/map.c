@@ -1,14 +1,11 @@
 #include "map.h"
 
 
-void mapInit() {
-    memoryCounter = 0;
-
-    heading = NORTH;
+void mapInit() {heading = NORTH;
 
     currentFloor = malloc(sizeof(struct Floor));
 
-    currentFloor->start = mapCreateField(0, 0, true);
+    mapCreateField(0, 0, true);
     currentField = currentFloor->start;
 
     mapUpdate();
@@ -29,7 +26,12 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
 
     bool shouldGetDeleted = false;
 
-    if(!startField) {
+    if(startField) {
+        new->next = NULL;
+        new->prev = NULL;
+        currentFloor->start = new;
+        currentFloor->end = new;
+    } else {
         shouldGetDeleted = true;
         for(uint8_t i=0; i<4; i++) {
             Point aP = mapGetAdjacentPositionGlobal(nP, i);
@@ -60,6 +62,11 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     if(shouldGetDeleted) {
         free(new);
         return NULL;
+    } else if (!startField) {
+        new->next = NULL;
+        new->prev = currentFloor->end;
+        currentFloor->end->next = new;
+        currentFloor->end = new;
     }
 
     return new;
@@ -79,131 +86,18 @@ Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir) {
     return rP;
 }
 
-FieldLinkedListElement *mapFloorTo1DList() {
-
-    // the open list contains all fields of which the neighbor fields didn't got tracked yet
-    memoryCounter++;
-    FieldLinkedListElement *openStart = malloc(sizeof(FieldLinkedListElement));
-    openStart->field = currentFloor->start;
-    openStart->next = NULL;
-    openStart->prev = NULL;
-    
-    FieldLinkedListElement *openEnd = openStart;
-    openEnd->field = currentFloor->start;
-    openEnd->next = NULL;
-    openEnd->prev = NULL;
-
-    // the closed list contains all fields where already all neighbor fields got tracked
-    FieldLinkedListElement* closedStart = NULL;
-    FieldLinkedListElement* closedEnd = NULL;
-
-    // as long as there are elements in open there must be fields in the map that aren't in the 1D list
-    while(openStart != NULL) {
-
-        // remove last field from open list, ...
-        struct FieldLinkedListElement *removedOpen;
-        removedOpen = openEnd;
-
-        
-
-        if(removedOpen->prev == NULL) {
-            openStart = NULL;
-            openEnd = NULL;
-        } else {
-            openEnd = removedOpen->prev;
-            openEnd->next = NULL;
-        }
-
-        // ... and add the neighbor fields to the open list ...
-        for(uint8_t i=0; i<4; i++) {
-
-            // ... as long as this neighbor exists, ...
-            if(removedOpen->field->neighbors[i] != NULL) {
-
-                // ... and is not already contained inside the open list ...
-                bool notOpenAlready = true;
-                if(openStart != NULL) {
-                    FieldLinkedListElement *openPtr;
-                    openPtr = openStart;
-                    do {
-                        if(openPtr->field == removedOpen->field->neighbors[i])
-                            notOpenAlready = false;
-                        openPtr = openPtr->next;
-                    } while((openPtr != NULL) & notOpenAlready);
-                }
-
-                // ... or the closed list
-                bool notClosedAlready = true;
-                if(closedStart != NULL) {
-                    FieldLinkedListElement *closedPtr;
-                    closedPtr = closedStart;
-                    do {
-                        if(closedPtr->field == removedOpen->field->neighbors[i])
-                            notClosedAlready = false;
-                        closedPtr = closedPtr->next;
-                    } while((closedPtr != NULL) & notClosedAlready);
-                }
-
-                if(notClosedAlready && notOpenAlready)
-                {
-                    memoryCounter++;
-                    FieldLinkedListElement *new = malloc(sizeof(FieldLinkedListElement));
-                    if(new == NULL) {
-                        
-                    }
-                    new->field = removedOpen->field->neighbors[i];
-                    new->prev = openEnd;
-                    openEnd->next = new;
-                    openEnd = new;
-                    if(openStart == NULL)
-                        openStart = new;
-                    new->next = NULL;
-                }
-            }
-        }
-
-        // in the end: add the removed element to the closed list
-        if(closedStart == NULL) {
-            closedStart = removedOpen;
-            closedStart->prev = NULL;
-            closedStart->next = NULL;
-            closedEnd = closedStart;
-        } else {
-            closedEnd->next = removedOpen;
-            removedOpen->prev = closedEnd;
-            closedEnd = removedOpen;
-        }
-    }
-
-    return closedStart;
-}
-
 Field* mapFindField(int8_t x, int8_t y) {
-    FieldLinkedListElement *fieldStart = mapFloorTo1DList();
-    FieldLinkedListElement *fieldPtr = fieldStart;
+    Field *fieldPtr = currentFloor->start;
+
     Field *rtn = NULL;
 
     do {
-        if((fieldPtr->field->x==x) && (fieldPtr->field->y==y))
-            rtn = fieldPtr->field;
+        if((fieldPtr->x==x) && (fieldPtr->y==y))
+            rtn = fieldPtr;
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
 
-    mapFreeLinkedList(fieldStart);
-
     return rtn;
-}
-
-void mapFreeLinkedList(FieldLinkedListElement *fieldPtr) {
-    FieldLinkedListElement *next;
-
-    do {
-        next = fieldPtr->next;
-        serialPrintInt(50000);
-        memoryCounter--;
-        free(fieldPtr);
-        fieldPtr = next;
-    } while(fieldPtr != NULL);
 }
 
 void mapRotate(int8_t amount) {
@@ -254,29 +148,28 @@ void mapUpdate() {
 }
 
 AdjacentScores mapGetAdjacentScores() {
-    FieldLinkedListElement *fieldStart = mapFloorTo1DList();
-    FieldLinkedListElement *fieldPtr = fieldStart;
+    Field *fieldPtr = currentFloor->start;
 
     bool flag = false;
 
     do {
-        if(fieldPtr->field->type != 0)
-            fieldPtr->field->score = 0;
+        if(fieldPtr->type != 0)
+            fieldPtr->score = 0;
         else {
-            fieldPtr->field->score = 127;
+            fieldPtr->score = 127;
             flag = true;
         }
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
 
     if(flag==false && currentField!=currentFloor->start) {
-        fieldPtr = fieldStart;
+        fieldPtr = currentFloor->start;
         currentFloor->start->type = 0;
         do {
-            if(fieldPtr->field->type != 0)
-                fieldPtr->field->score = 0;
+            if(fieldPtr->type != 0)
+                fieldPtr->score = 0;
             else
-                fieldPtr->field->score = 127;
+            fieldPtr->score = 127;
             fieldPtr = fieldPtr->next;
         } while(fieldPtr != NULL);
     }
@@ -286,13 +179,13 @@ AdjacentScores mapGetAdjacentScores() {
         int8_t i=127;
 
         while(currentField->score==0) {
-            fieldPtr = fieldStart;
+            fieldPtr = currentFloor->start;
             do {
-                if(fieldPtr->field->score == 0) {
+                if(fieldPtr->score == 0) {
                     for(uint8_t dir=0; dir<4; dir++) {
-                        if(fieldPtr->field->neighbors[dir]!=NULL) {
-                            if(fieldPtr->field->neighbors[dir]->score == i) {
-                                fieldPtr->field->score = i-1;
+                        if(fieldPtr->neighbors[dir]!=NULL) {
+                            if(fieldPtr->neighbors[dir]->score == i) {
+                                fieldPtr->score = i-1;
                             }
                         }
                     }
@@ -313,35 +206,31 @@ AdjacentScores mapGetAdjacentScores() {
             aScores.score[dir] = currentField->neighbors[dir]->score;
     }
 
-    mapFreeLinkedList(fieldStart);
-
     mapSender();
 
     return aScores;
 }
 
 void mapSender() {
-    FieldLinkedListElement *fieldStart = mapFloorTo1DList();
-    FieldLinkedListElement *fieldPtr = fieldStart;
+    Field *fieldPtr = currentFloor->start;
 
     serialPrintNL();
     serialPrintNL();
     serialPrintInt(currentField->x);
     serialPrintInt(currentField->y);
+    serialPrintInt(heading);
     serialPrintNL();
 
     do {
-        serialPrintInt(fieldPtr->field->x);
-        serialPrintInt(fieldPtr->field->y);
-        serialPrintInt(fieldPtr->field->type);
-        serialPrintInt(fieldPtr->field->score);
+        serialPrintInt(fieldPtr->x);
+        serialPrintInt(fieldPtr->y);
+        serialPrintInt(fieldPtr->type);
+        serialPrintInt(fieldPtr->score);
         for(uint8_t dir=0; dir<4; dir++)
-            serialPrintInt(((fieldPtr->field->neighbors[dir]==NULL)?1:0));
+            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
         serialPrintNL();
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
-
-    mapFreeLinkedList(fieldStart);
 
     serialPrintNL();
 }

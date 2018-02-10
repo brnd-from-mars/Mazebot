@@ -36,18 +36,15 @@ typedef struct Field {
     int8_t type;
 
     int8_t score;
+
+    struct Field *next;
+    struct Field *prev;
 } Field;
 
 typedef struct Floor {
     Field *start;
+    Field *end;
 } Floor;
-
-typedef struct FieldLinkedListElement {
-    Field *field;
-
-    struct FieldLinkedListElement *prev;
-    struct FieldLinkedListElement *next;
-} FieldLinkedListElement;
 
 typedef struct AdjacentScores {
     int8_t score[4];
@@ -68,11 +65,7 @@ Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir);
 
 Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir);
 
-FieldLinkedListElement *mapFloorTo1DList();
-
 Field* mapFindField(int8_t x, int8_t y);
-
-void mapFreeLinkedList(FieldLinkedListElement *fieldPtr);
 
 void mapRotate(int8_t amount);
 

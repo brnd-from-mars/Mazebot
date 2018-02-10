@@ -103,9 +103,6 @@ void setup() {
 void loop() {
     melexisInterrupt();
 
-    Serial.println(melexis[1].value);
-    Serial.println(melexis[3].value);
-
     //Serial3.println();
     //Serial3.print("MC: ");
     //Serial3.println(memoryCounter);
