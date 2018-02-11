@@ -15,15 +15,10 @@ void navigate() {
         motorBrake();
         int distanceEnc = distanceCoveredEnc();
         encoderReset();
-        serialPrintInt(1000);
         mapFrontFieldBlack();
-        serialPrintInt(2000);
         startForwardEnc(-distanceEnc);
-        serialPrintInt(3000);
         lastAction = 4;
-        serialPrintInt(4000);
         blackEscaping = true;
-        serialPrintInt(5000);
     }
 
     if(rotateState==-1 && lastRotateState!=rotateState)

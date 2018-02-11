@@ -42,6 +42,8 @@ typedef struct Field {
 typedef struct Floor {
     Field *start;
     Field *end;
+
+    struct Floor *next;
 } Floor;
 
 typedef struct AdjacentScores {
@@ -51,9 +53,23 @@ typedef struct AdjacentScores {
 
 uint8_t heading;
 
+Floor *startFloor;
+
 Floor *currentFloor;
 
 Field *currentField;
+
+// BACKUP:
+
+uint8_t bkupHeading;
+
+Floor *bkupStartFloor;
+
+Floor *bkupCurrentFloor;
+
+Field *bkupCurrentField;
+
+// FUNCTIONS:
 
 void mapInit();
 
@@ -76,6 +92,12 @@ void mapUpdate();
 AdjacentScores mapGetAdjacentScores();
 
 void mapSender();
+
+void mapMakeBackup();
+
+void mapRestoreBackup();
+
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField);
 
 
 #endif

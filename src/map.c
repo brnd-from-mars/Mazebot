@@ -1,23 +1,33 @@
 #include "map.h"
 
 
-void mapInit() {heading = NORTH;
+void mapInit() {
 
-    currentFloor = malloc(sizeof(struct Floor));
+    heading = NORTH;
+
+    startFloor = malloc(sizeof(Floor));
+    currentFloor = startFloor;
+
+    currentFloor->next = NULL;
 
     mapCreateField(0, 0, true);
     currentField = currentFloor->start;
+
+    bkupStartFloor = NULL;
+    bkupCurrentFloor = NULL;
+    bkupCurrentField = NULL;
 
     mapUpdate();
 }
 
 Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     Field *new = malloc(sizeof(Field));
-    Point nP = {.x=x, .y=y}; // 0, 1
+    Point nP = {.x=x, .y=y};
 
     new->x = x;
     new->y = y;
     new->type = 0;
+    new->score = 0;
 
     // init walls, because of reasons (you don't want
     // to see what happens with out it)
@@ -27,15 +37,14 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     bool shouldGetDeleted = false;
 
     if(startField) {
-        new->next = NULL;
         currentFloor->start = new;
         currentFloor->end = new;
     } else {
         shouldGetDeleted = true;
         for(uint8_t i=0; i<4; i++) {
             Point aP = mapGetAdjacentPositionGlobal(nP, i);
-            Field *aF = mapFindField(aP.x, aP.y);
             // does this field has an adjacent field?
+            Field *aF = mapFindField(aP.x, aP.y);
             if(aF != NULL) {
                 if(aF == currentField) {
                     // if not -> create link
@@ -61,11 +70,12 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     if(shouldGetDeleted) {
         free(new);
         return NULL;
-    } else if (!startField) {
-        new->next = NULL;
+    } else if(!startField) {
         currentFloor->end->next = new;
         currentFloor->end = new;
     }
+
+    new->next = NULL;
 
     return new;
 }
@@ -118,30 +128,18 @@ void mapForward() {
 }
 
 void mapFrontFieldBlack() {
-    serialPrintInt(41000);
     Point cP = {.x=currentField->x, .y=currentField->y};
-    serialPrintInt(42000);
     Point fP = mapGetAdjacentPositionLocal(cP, FRONT);
-    serialPrintInt(43000);
 
     Field *fF = mapFindField(fP.x, fP.y);
-    serialPrintInt(44000);
 
     if(fF != NULL)
         fF->type = 2;
-
-    serialPrintInt(45000);
 }
 
 void mapUpdate() {
     Point cP = {.x=currentField->x, .y=currentField->y};
-    
-    if(isBlack)
-        currentField->type = 2;
-    else if(isSilver)
-        currentField->type = 3;
-    else
-        currentField->type = 1;
+    currentField->type = 1;
 
     uint8_t walldata = getWallData(heading);
 
@@ -175,6 +173,13 @@ void mapUpdate() {
             }
         }
     }
+
+    if(isBlack)
+        currentField->type = 2;
+    else if(isSilver || (currentField == startFloor->start)) {
+        currentField->type = 3;
+        mapMakeBackup();
+    }   
 }
 
 AdjacentScores mapGetAdjacentScores() {
@@ -198,10 +203,12 @@ AdjacentScores mapGetAdjacentScores() {
         fieldPtr = currentFloor->start;
         currentFloor->start->type = 0;
         do {
-            if(fieldPtr->type != 0)
+            if(fieldPtr->type == 2)
+                fieldPtr->score = -1;
+            else if(fieldPtr->type != 0)
                 fieldPtr->score = 0;
             else
-            fieldPtr->score = 127;
+                fieldPtr->score = 127;
             fieldPtr = fieldPtr->next;
         } while(fieldPtr != NULL);
     }
@@ -265,4 +272,116 @@ void mapSender() {
     } while(fieldPtr != NULL);
 
     serialPrintNL();
+}
+
+void mapMakeBackup() {
+    bkupHeading = heading;
+    bkupCurrentFloor = NULL;
+    bkupCurrentField = NULL;
+    mapCopy(startFloor, currentFloor, currentField, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField);
+}
+
+void mapRestoreBackup() {
+    serialPrintNL();
+    serialPrintInt(255);
+    serialPrintNL();
+    heading = bkupHeading;
+    currentFloor = NULL;
+    currentField = NULL;
+    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, &startFloor, &currentFloor, &currentField);
+    mapSender();
+}
+
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField) {
+
+    // delete old stuff at the source
+
+    Floor *destFloorPtr = (*destStartFloor);
+
+    // iterate through all floors
+    while(destFloorPtr!=NULL) {
+        Field *destFieldPtr = destFloorPtr->start;
+        // iterate through all fields
+        do {
+            Field *nextField = destFieldPtr->next;
+            // delete field
+            free(destFieldPtr);
+            destFieldPtr = nextField;
+        } while(destFieldPtr != NULL);
+        Floor *nextFloor = destFloorPtr->next;
+        // delete floor
+        free(destFloorPtr);
+        destFloorPtr = nextFloor;
+    }
+
+    // copy the whole stuff
+    
+    Floor *srcFloorPtr = srcStartFloor;
+
+    destFloorPtr = malloc(sizeof(Floor));
+    (*destStartFloor) = destFloorPtr;
+
+    do {
+        if(srcFloorPtr == srcCurrentFloor)
+            (*destCurrentFloor) = destFloorPtr;
+        
+        Field *srcFieldPtr = srcFloorPtr->start;
+
+        Field *destFieldPtr = malloc(sizeof(Field));
+        destFloorPtr->start = destFieldPtr;
+
+        do {
+            if(srcFieldPtr == srcCurrentField)
+                (*destCurrentField) = destFieldPtr;
+
+            destFieldPtr->x = srcFieldPtr->x;
+            destFieldPtr->y = srcFieldPtr->y;
+            destFieldPtr->type = srcFieldPtr->type;
+            destFieldPtr->score = 0;
+            destFieldPtr->neighbors[0] = NULL;
+            destFieldPtr->neighbors[1] = NULL;
+            destFieldPtr->neighbors[2] = NULL;
+            destFieldPtr->neighbors[3] = NULL;
+
+            if(srcFieldPtr->next != NULL) {
+                destFieldPtr->next = malloc(sizeof(Field));
+                destFieldPtr = destFieldPtr->next;
+            } else {
+                destFieldPtr->next = NULL;
+                destFloorPtr->end = destFieldPtr;
+            }
+
+            srcFieldPtr = srcFieldPtr->next;
+        } while(srcFieldPtr != NULL);
+
+        srcFieldPtr = srcFloorPtr->start;
+        destFieldPtr = destFloorPtr->start;
+
+        do {
+            for(uint8_t dir=0; dir<4; dir++) {
+                if((srcFieldPtr->neighbors[dir]!=NULL) && (destFieldPtr->neighbors[dir]==NULL)) {
+                    Point targetPoint = {.x=srcFieldPtr->neighbors[dir]->x, .y=srcFieldPtr->neighbors[dir]->y};
+                    Field *targetDestField = destFieldPtr->next;
+                    while((targetDestField!=NULL) && !((targetDestField->x==targetPoint.x) && (targetDestField->y==targetPoint.y))) {
+                        targetDestField = targetDestField->next;
+                    }
+                    if(targetDestField!=NULL) {
+                        destFieldPtr->neighbors[dir]=targetDestField;
+                        targetDestField->neighbors[(dir+2)%4] = destFieldPtr;
+                    }
+                }
+            }
+            srcFieldPtr = srcFieldPtr->next;
+            destFieldPtr = destFieldPtr->next;
+        } while((srcFieldPtr!=NULL) && (destFieldPtr!=NULL));
+
+        if(srcFloorPtr->next != NULL) {
+            destFloorPtr->next = malloc(sizeof(Floor));
+            destFloorPtr = destFloorPtr->next;
+        } else
+            destFloorPtr->next = NULL;
+
+        srcFloorPtr = srcFloorPtr->next;
+    } while(srcFloorPtr != NULL);
+
 }

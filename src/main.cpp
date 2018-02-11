@@ -70,6 +70,8 @@ void servoRight() {
     TIMER_START
 }
 
+bool lastState;
+
 void setup() {
     Serial.begin(38400);
     Serial3.begin(38400);
@@ -91,9 +93,6 @@ void setup() {
     timerInit();
     delay(400);
 
-    Serial3.print(isSilver);
-    Serial3.println(isBlack);
-
     // map
     mapInit();
 
@@ -101,6 +100,8 @@ void setup() {
     servoInit();
 
     Serial3.println("START");
+
+    lastState = false;
 }
 
 void loop() {
@@ -111,18 +112,26 @@ void loop() {
     TIMER_START
 
     if(toggleswitch[0].value) {
-        victimRecognition();
-        if(enableNavigation)
-            navigate();
+        if(toggleswitch[1].value) {
+            lastState = false;
+            victimRecognition();
+            if(enableNavigation)
+                navigate();
+        } else {
+            motorBrake();
+            if(!lastState) {
+                mapRestoreBackup();
+                encoderReset();
+                rotateState = -1;
+                forwardState = -1;
+                targetEncoderValue = 0;
+                lastAction = 5;
+            }
+            lastState = true;
+        }
     } else {
         rgbOff(0);
         motorBrake();
-
-        Serial.print(darknessLeft);
-        Serial.println(darknessRight);
-
-        Serial3.print(isSilver);
-        Serial3.println(isBlack);
     }
 
     if(victimSetKitdropper == 1) {
