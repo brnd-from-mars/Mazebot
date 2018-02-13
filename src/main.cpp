@@ -4,9 +4,10 @@
 extern "C" {
 #endif
 #include "analog.h"
-#include "black.h"
 #include "drive.h"
+#include "driveStateMachine.h"
 #include "encoder.h"
+#include "light.h"
 #include "map.h"
 #include "melexis.h"
 #include "motor.h"
@@ -25,7 +26,7 @@ Servo kitdropper;
 
 void servoInit() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
     delay(1000);
@@ -39,7 +40,7 @@ void servoInit() {
 
 void servoLeft() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
     delay(400);
@@ -55,7 +56,7 @@ void servoLeft() {
 
 void servoRight() {
     TIMER_STOP
-    blackMeasure();
+    lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_RIGHT);
     delay(400);
@@ -69,14 +70,17 @@ void servoRight() {
     TIMER_START
 }
 
+bool lastState;
+
 void setup() {
     Serial.begin(38400);
-    Serial3.begin(57600);
+    Serial3.begin(38400);
 
     // init everything
     analogInit();
-    blackInit();
+    driveSMInit();
     encoderInit();
+    lightInit();
     melexisInit();
     motorInit();
     navigationInit();
@@ -94,55 +98,40 @@ void setup() {
 
     // servo
     servoInit();
+
+    Serial3.println("START");
+
+    lastState = false;
 }
 
 void loop() {
-    Serial3.println("Hello, world!");
+    melexisInterrupt();
 
     TIMER_STOP
     rampInterrupt();
     TIMER_START
 
     if(toggleswitch[0].value) {
-        victimRecognition();
-        if(enableNavigation) {
-            if(rampState==0)
-                navigationRightWall();
-            else if(rampState==1) {
-                drive(160, 0.5, 0.02, 1.0);
-                rgbSet(64, 64, 0, 0);
-            } else {
-                drive(80, 0.5, 0.02, 1.0);
-                rgbSet(64, 64, 0, 0);
+        if(toggleswitch[1].value) {
+            lastState = false;
+            victimRecognition();
+            if(enableNavigation)
+                navigate();
+        } else {
+            motorBrake();
+            if(!lastState) {
+                mapRestoreBackup();
+                encoderReset();
+                rotateState = -1;
+                forwardState = -1;
+                targetEncoderValue = 0;
+                lastAction = 5;
             }
+            lastState = true;
         }
     } else {
         rgbOff(0);
         motorBrake();
-    }
-
-    if(toggleswitch[1].value) {
-        Serial.print("hdg: ");
-        Serial.print(heading);
-        Serial.print(" y: ");
-        Serial.print(pos.y);
-        Serial.print(" x: ");
-        Serial.println(pos.x);
-        for(uint8_t y=0; y<FLOOR_SIZE; y++) {
-            for(uint8_t x=0; x<FLOOR_SIZE; x++) {
-                Serial.print("y: ");
-                Serial.print(y);
-                Serial.print(" x: ");
-                Serial.print(x);
-                Serial.print(" visited: ");
-                Serial.print(arena[0].fields[y][x].visited, BIN);
-                Serial.print(" type ");
-                Serial.print(arena[0].fields[y][x].type);
-                Serial.print(" wallData: ");
-                Serial.println(arena[0].fields[y][x].wallData, BIN);
-            }
-        }
-        Serial.println();
     }
 
     if(victimSetKitdropper == 1) {

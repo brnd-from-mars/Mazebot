@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "config.h"
 #include "melexis.h"
+#include "motor.h"
+#include "rgb.h"
 #include "navigation.h"
 
 

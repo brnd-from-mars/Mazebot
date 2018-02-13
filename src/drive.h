@@ -6,6 +6,7 @@
 #include "config.h"
 #include "motor.h"
 #include "rgb.h"
+#include <math.h>
 
 
 

@@ -16,13 +16,13 @@
 
 #define BLACK_RECOGNITION
 
+#define BLACK_MIN 900
+#define SILVER_MAX 610
+
 #define TIMER_STOP TCCR5B &= ~((1<<CS50)|(1<<CS51));
 #define TIMER_START TCCR5B |= (1<<CS50)|(1<<CS51);
 
-#define FLOOR_SIZE 6
-#define FLOOR_COUNT 1
-
-#define VICTIM_TEMPERATURE 28
+#define VICTIM_TEMPERATURE 30
 
 #define RAMP_UP 350
 #define RAMP_DOWN 325

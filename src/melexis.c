@@ -15,7 +15,12 @@ void melexisInit() {
 }
 
 void melexisInterrupt() {
+    float value = melexis[nextMelexis].value;
+
     melexis[nextMelexis].value = melexisTemperature(melexis[nextMelexis].address);
+
+    if(melexis[nextMelexis].value>=50)
+        melexis[nextMelexis].value = value;
 
     nextMelexis = (nextMelexis==3 ? 0 : nextMelexis+1);
 }

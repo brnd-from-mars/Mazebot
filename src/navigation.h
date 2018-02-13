@@ -1,42 +1,30 @@
 #ifndef NAVIGATION_H_
 #define NAVIGATION_H_
 
+
 #include <Arduino.h>
 #include "config.h"
-#include "black.h"
-#include "drive.h"
-#include "encoder.h"
+#include "driveStateMachine.h"
 #include "map.h"
 #include "motor.h"
 
 
-int8_t rotateState;
-
-int8_t forwardState;
-
-int8_t lastRotation;
-
-bool blockRotateRight;
 
 bool enableNavigation;
 
-int targetEncValueRotation;
+bool blackEscaping;
 
-int targetEncValueForward;
+int8_t lastAction;
+
+int8_t lastRotateState;
+
+int8_t lastForwardState;
 
 void navigationInit();
 
-void navigationRightWall();
+void navigate();
 
-void startRotate(int angle);
-
-void startForward(int distance);
-
-void processRotate();
-
-void processForward();
-
-int distanceCoveredEnc();
+void navigationUpdateMap(int8_t action);
 
 
 #endif

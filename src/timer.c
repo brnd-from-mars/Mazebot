@@ -31,15 +31,12 @@ ISR( TIMER5_COMPA_vect ) {
     switch(loopCnt) {
 #ifdef BLACK_RECOGNITION
     case 10:
-        blackPrepare();
+        lightPrepare();
         break;
-    case 20:
-        blackMeasure();
+    case 15:
+        lightMeasure();
         break;
 #endif
-    case 30:
-        melexisInterrupt();
-        break;
     case 50:
         loopCnt = 0;
         break;

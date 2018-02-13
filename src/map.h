@@ -1,77 +1,105 @@
 #ifndef MAP_H_
 #define MAP_H_
 
+
 #include <Arduino.h>
 #include "config.h"
 #include "analog.h"
+#include "light.h"
+
+#include <stdlib.h>
 
 
 typedef struct Point {
-    int8_t x;
-    int8_t y;
-};
+    int8_t x : 4;
+    int8_t y : 4;
+} Point;
+
 
 typedef struct Field {
-    /*
-     * by value
-     * 0 no
-     * 1 yes
-     */
-    uint8_t visited : 1;
+    struct Field *neighbors[4];
+
+    int8_t x : 4;
+    int8_t y : 4;
 
     /*
-     * by value
-     * 0 white
-     * 1 black
-     * 2 silver
-     * 3 rampup
-     * 4 rampdown
+     * 0 unvisited
+     * 1 white
+     * 2 black
+     * 3 silver
+     * 4 ramp
      * 5 unused
      * 6 unused
      * 7 unused
      */
-    uint8_t type : 3;
+    int8_t type;
 
-    /*
-     * bitwise
-     * 
-     * 3       2       1       0
-     * NORTH   WEST    SOUTH   EAST
-     */
-    uint8_t wallData : 4;
-};
+    int8_t score;
+
+    struct Field *next;
+} Field;
 
 typedef struct Floor {
-    Field fields[FLOOR_SIZE][FLOOR_SIZE];
-};
+    Field *start;
+    Field *end;
 
-Floor arena[FLOOR_COUNT];
+    struct Floor *next;
+} Floor;
 
-Floor backup[FLOOR_COUNT];
+typedef struct AdjacentScores {
+    int8_t score[4];
+} AdjacentScores;
+
+
+uint8_t heading;
+
+Floor *startFloor;
 
 Floor *currentFloor;
 
 Field *currentField;
 
-Point pos;
+// BACKUP:
 
-uint8_t heading;
+uint8_t bkupHeading;
+
+Floor *bkupStartFloor;
+
+Floor *bkupCurrentFloor;
+
+Field *bkupCurrentField;
+
+// FUNCTIONS:
 
 void mapInit();
 
-void mapCreatorForward();
+Field* mapCreateField(int8_t x, int8_t y, bool startField);
 
-bool mapCreatorRotate(int8_t amount);
+uint8_t mapLocalToGlobalDirection(uint8_t local);
 
-void mapCreatorPushX();
+Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir);
 
-void mapCreatorPushY();
+Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir);
 
-void mapCreatorBlackField();
+Field* mapFindField(int8_t x, int8_t y);
 
-Point mapGetAdjacentPosition(uint8_t dir, bool allowPush);
+void mapRotate(int8_t amount);
 
-bool mapAllowRightTurn();
+void mapForward();
+
+void mapFrontFieldBlack();
+
+void mapUpdate();
+
+AdjacentScores mapGetAdjacentScores();
+
+void mapMakeBackup();
+
+void mapRestoreBackup();
+
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField);
+
+void mapSender();
 
 
 #endif

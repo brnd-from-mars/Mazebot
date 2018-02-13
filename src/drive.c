@@ -13,7 +13,7 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
     int errorP = 0;
     int errorD = 0;
 
-    int targetWalldistance = 240;
+    int targetWalldistance = 250;
 
     if(entireWall(RIGHT, 150) && entireWall(LEFT, 150)) {
         targetWalldistance = trunc((sharp[3].value + sharp[5].value)/2);
@@ -93,7 +93,7 @@ bool correctRotationPosition(bool start) {
                 rightSpeed -= (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
             }
 
-            if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
+            if(abs(leftSpeed)<40 && abs(rightSpeed)<40) {
                 motorBrake();
                 return false;
             }
