@@ -75,6 +75,8 @@ void mapInit();
 
 Field* mapCreateField(int8_t x, int8_t y, bool startField);
 
+uint8_t mapLocalToGlobalDirection(uint8_t local);
+
 Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir);
 
 Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir);
@@ -91,13 +93,13 @@ void mapUpdate();
 
 AdjacentScores mapGetAdjacentScores();
 
-void mapSender();
-
 void mapMakeBackup();
 
 void mapRestoreBackup();
 
 void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField);
+
+void mapSender();
 
 
 #endif

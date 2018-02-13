@@ -5,18 +5,29 @@ void mapInit() {
 
     heading = NORTH;
 
+    // create startFloor
     startFloor = malloc(sizeof(Floor));
+    // set startFloor to currentFloor
     currentFloor = startFloor;
 
+    // no next floor exists, yet
     currentFloor->next = NULL;
 
+    // create startField and set it to currentFloor's startField
     mapCreateField(0, 0, true);
+    // set startField to currentField
     currentField = currentFloor->start;
 
+    // set whole backupDate
+    bkupHeading = NORTH;
     bkupStartFloor = NULL;
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
 
+    // update map
+    // -> create surrounding visible fields
+    // -> link them to already known fields
+    // -> make first backup
     mapUpdate();
 }
 
@@ -29,21 +40,28 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     new->type = 0;
     new->score = 0;
 
-    // init walls, because of reasons (you don't want
-    // to see what happens with out it)
+    // init walls, other functions depend on that
+    // the pointers to neighbor walls in a struct should be
+    // either NULL or direct to another field
+    // -> nether unititialized
     for(uint8_t i=0; i<4; i++)
         new->neighbors[i] = NULL;
 
+    // explanation: look down in this function
     bool shouldGetDeleted = false;
 
+    // if field is startField
     if(startField) {
+        // set head and tail of current floor linked list
         currentFloor->start = new;
         currentFloor->end = new;
+    // if not
     } else {
+        // field should get deleted as long as it don't have
         shouldGetDeleted = true;
         for(uint8_t i=0; i<4; i++) {
             Point aP = mapGetAdjacentPositionGlobal(nP, i);
-            // does this field has an adjacent field?
+            // ... any known adjacent fields
             Field *aF = mapFindField(aP.x, aP.y);
             if(aF != NULL) {
                 if(aF == currentField) {
@@ -52,12 +70,16 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
                     aF->neighbors[(i+2)%4] = new;
                     new->neighbors[i] = aF;
                 } else {
+                    // if adjacent field not visited ...
                     if(aF->type == 0) {
-                        // if not -> create link
+                        // ... create link
                         shouldGetDeleted = false;
                         aF->neighbors[(i+2)%4] = new;
                         new->neighbors[i] = aF;
                     }
+                    // otherwise the field to create should have
+                    // been already created
+                    // -> implement an error catching at this point?
                 }
             }
         }
@@ -71,6 +93,7 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
         free(new);
         return NULL;
     } else if(!startField) {
+        // set new tail of field linked list for current floor
         currentFloor->end->next = new;
         currentFloor->end = new;
     }
@@ -80,8 +103,12 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
     return new;
 }
 
+uint8_t mapLocalToGlobalDirection(uint8_t local) {
+    return (uint8_t)((dir + heading + 1)%4);
+}
+
 Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir) {
-    uint8_t global = (dir + heading + 1)%4;
+    uint8_t global = mapLocalToGlobalDirection(dir);
     return mapGetAdjacentPositionGlobal(aP, global);
 }
 
@@ -89,26 +116,32 @@ Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir) {
     // some magic formulas that calculate the change of coordinates into
     // different directions
     // do not remove or edit this formula, it let Brendan in a big struggle
-    // (because he hadn't type casted the result of abs to something signed)
+    // for a long time (because he hadn't type casted the result of
+    // abs to something signed)
     Point rP = {.x=aP.x+(int8_t)(abs(dir-2))-1, .y=aP.y+(int8_t)(abs(dir-1))-1};
     return rP;
 }
 
 Field* mapFindField(int8_t x, int8_t y) {
+    // let cursor point to current floor's startField
     Field *fieldPtr = currentFloor->start;
 
-    Field *rtn = NULL;
-
+    // iterate through all fields in current floor
     do {
+        // if coordinates match requested ones
         if((fieldPtr->x==x) && (fieldPtr->y==y))
-            rtn = fieldPtr;
+            // return current cursor
+            return fieldPtr;
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
 
-    return rtn;
+    return NULL;
 }
 
 void mapRotate(int8_t amount) {
+    // this function does not rotate the map!
+    // it just keeps track of the robot's current
+    // orientation
     int8_t new = (heading+amount);
     while(new<0)
         new+=4;
@@ -116,33 +149,43 @@ void mapRotate(int8_t amount) {
 }
 
 void mapForward() {
+    // get last position
     Point lP = {.x=currentField->x, .y=currentField->y};
+    // get new position
     Point nP = mapGetAdjacentPositionLocal(lP, FRONT);
 
+    // check, if field already exists and set new currentField
     Field *nF = mapFindField(nP.x, nP.y);
-
     if(nF != NULL)
         currentField = nF;
+    // if not -> should be an error
     
+    // update map to create new observed fields
     mapUpdate();
 }
 
 void mapFrontFieldBlack() {
+    // get current position
     Point cP = {.x=currentField->x, .y=currentField->y};
+    // get position in front of the robot
     Point fP = mapGetAdjacentPositionLocal(cP, FRONT);
 
+    // check, if field already exists and set type to black
     Field *fF = mapFindField(fP.x, fP.y);
-
     if(fF != NULL)
         fF->type = 2;
+    // if not -> should be an error
 }
 
 void mapUpdate() {
+    // set current position and temporary type
     Point cP = {.x=currentField->x, .y=currentField->y};
     currentField->type = 1;
 
+    // request information about surrounding fields
     uint8_t walldata = getWallData(heading);
 
+    // iterate through all directions
     for(uint8_t dir=0; dir<4; dir++) {
         // if wall detected
         if((bool)(walldata & (1<<dir))) {
@@ -174,6 +217,7 @@ void mapUpdate() {
         }
     }
 
+    // specify field type and if necessary store backup
     if(isBlack)
         currentField->type = 2;
     else if(isSilver || (currentField == startFloor->start)) {
@@ -248,30 +292,6 @@ AdjacentScores mapGetAdjacentScores() {
     mapSender();
 
     return aScores;
-}
-
-void mapSender() {
-    Field *fieldPtr = currentFloor->start;
-
-    serialPrintNL();
-    serialPrintNL();
-    serialPrintInt(currentField->x);
-    serialPrintInt(currentField->y);
-    serialPrintInt(heading);
-    serialPrintNL();
-
-    do {
-        serialPrintInt(fieldPtr->x);
-        serialPrintInt(fieldPtr->y);
-        serialPrintInt(fieldPtr->type);
-        serialPrintInt(fieldPtr->score);
-        for(uint8_t dir=0; dir<4; dir++)
-            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
-        serialPrintNL();
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
-
-    serialPrintNL();
 }
 
 void mapMakeBackup() {
@@ -384,4 +404,28 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
         srcFloorPtr = srcFloorPtr->next;
     } while(srcFloorPtr != NULL);
 
+}
+
+void mapSender() {
+    Field *fieldPtr = currentFloor->start;
+
+    serialPrintNL();
+    serialPrintNL();
+    serialPrintInt(currentField->x);
+    serialPrintInt(currentField->y);
+    serialPrintInt(heading);
+    serialPrintNL();
+
+    do {
+        serialPrintInt(fieldPtr->x);
+        serialPrintInt(fieldPtr->y);
+        serialPrintInt(fieldPtr->type);
+        serialPrintInt(fieldPtr->score);
+        for(uint8_t dir=0; dir<4; dir++)
+            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
+        serialPrintNL();
+        fieldPtr = fieldPtr->next;
+    } while(fieldPtr != NULL);
+
+    serialPrintNL();
 }
