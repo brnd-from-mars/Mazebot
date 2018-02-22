@@ -10,19 +10,19 @@ void startRotate(int angle) {
     switch(angle) {
     case 90:
         rotateState = 0;
-        targetEncoderValue = 75;
+        targetEncoderValue = 73;
         break;
     case -90:
         rotateState = 0;
-        targetEncoderValue = -75;
+        targetEncoderValue = -73;
         break;
     case 180:
         rotateState = 0;
-        targetEncoderValue = 150;
+        targetEncoderValue = 146;
         break;
     case -180:
         rotateState = 0;
-        targetEncoderValue = -150;
+        targetEncoderValue = -146;
         break;
     }
 }
@@ -33,7 +33,7 @@ void startForwardEnc(int distance) {
 }
 
 void startForwardCM(int distance) {
-    startForwardEnc((int)(distance * 4.40));
+    startForwardEnc((int)(distance * 4.60));
 }
 
 void processRotate() {
@@ -55,7 +55,7 @@ void processRotate() {
             correctRotationPosition(true);
             rotateState = 2;
         } else {
-            int speed=140;
+            int speed=160;
             if (distanceCoveredEnc() > (int)(0.5*abs(targetEncoderValue)))
                 speed = (int)(1.5*speed - speed*distanceCoveredEnc()/abs(targetEncoderValue));
             
@@ -93,7 +93,7 @@ void processForward() {
             correctRotationPosition(true);
             forwardState = 2;
         } else {
-            int speed = 140;
+            int speed = 160;
             if (distanceCoveredEnc() > (int)(0.5*abs(targetEncoderValue)))
                 speed = (int)(1.5*speed - speed*distanceCoveredEnc()/abs(targetEncoderValue));
             
@@ -104,6 +104,7 @@ void processForward() {
     // correct position and orientation
     case 2:
         if(!correctRotationPosition(false)) {
+            driveReset();
             targetEncoderValue = 0;
             forwardState = -1;
         }

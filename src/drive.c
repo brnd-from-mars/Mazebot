@@ -84,18 +84,29 @@ bool correctRotationPosition(bool start) {
             int16_t rightSpeed=0;
 
             if(referenceWallsPos != 0) {
-                leftSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
-                rightSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
+                leftSpeed += (int16_t)(trunc(0.8*errorPos/referenceWallsPos));
+                rightSpeed += (int16_t)(trunc(0.8*errorPos/referenceWallsPos));
             }
 
             if(referenceWallsRot != 0) {
-                leftSpeed += (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
-                rightSpeed -= (int16_t)(trunc(1.6*errorRot/referenceWallsRot));
+                leftSpeed += (int16_t)(trunc(1.8*errorRot/referenceWallsRot));
+                rightSpeed -= (int16_t)(trunc(1.8*errorRot/referenceWallsRot));
             }
 
-            if(abs(leftSpeed)<40 && abs(rightSpeed)<40) {
+            //leftSpeed = (int16_t)(leftSpeed * 1.5);
+            //rightSpeed = (int16_t)(rightSpeed * 1.5);
+
+            if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
                 motorBrake();
                 return false;
+            }
+
+            if(abs(leftSpeed)>170) {
+                leftSpeed = SIGNUM(leftSpeed)*170;
+            }
+
+            if(abs(rightSpeed)>170) {
+                rightSpeed = SIGNUM(rightSpeed)*170;
             }
 
             motorSetLeftSpeed(leftSpeed);

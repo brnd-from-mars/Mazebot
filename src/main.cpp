@@ -25,7 +25,7 @@ extern "C" {
 Servo kitdropper;
 
 void servoInit() {
-    TIMER_STOP
+    TIMER_STOP;
     lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
@@ -35,11 +35,11 @@ void servoInit() {
     kitdropper.write(SERVO_MIDDLE);
     delay(400);
     kitdropper.detach();
-    TIMER_START
+    TIMER_START;
 }
 
 void servoLeft() {
-    TIMER_STOP
+    TIMER_STOP;
     lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_LEFT);
@@ -51,11 +51,11 @@ void servoLeft() {
     kitdropper.write(SERVO_MIDDLE);
     delay(400);
     kitdropper.detach();
-    TIMER_START
+    TIMER_START;
 }
 
 void servoRight() {
-    TIMER_STOP
+    TIMER_STOP;
     lightMeasure();
     kitdropper.attach(11);
     kitdropper.write(SERVO_SHORT_RIGHT);
@@ -67,7 +67,7 @@ void servoRight() {
     kitdropper.write(SERVO_MIDDLE);
     delay(400);
     kitdropper.detach();
-    TIMER_START
+    TIMER_START;
 }
 
 bool lastState;
@@ -105,11 +105,10 @@ void setup() {
 }
 
 void loop() {
-    melexisInterrupt();
-
-    TIMER_STOP
+    TIMER_STOP;
     rampInterrupt();
-    TIMER_START
+    melexisInterrupt();
+    TIMER_START;
 
     if(toggleswitch[0].value) {
         if(toggleswitch[1].value) {

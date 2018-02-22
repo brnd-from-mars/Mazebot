@@ -32,7 +32,7 @@ void rampInterrupt() {
             maybeOnRampDown = 0;
     }
     
-    if(maybeOnRampUp >= 60)
+    if(maybeOnRampUp >= 30)
         rampState = 1;
     else if(maybeOnRampDown >= 30)
         rampState = -1;

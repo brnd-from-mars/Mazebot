@@ -9,6 +9,7 @@ void mapInit() {
     startFloor = malloc(sizeof(Floor));
     // set startFloor to currentFloor
     currentFloor = startFloor;
+    currentFloor->finished = false;
 
     // no next floor exists, yet
     currentFloor->next = NULL;
@@ -17,6 +18,8 @@ void mapInit() {
     mapCreateField(0, 0, true);
     // set startField to currentField
     currentField = currentFloor->start;
+    currentFloor->lastField = currentField;
+    currentFloor->origin = currentField;
 
     // set whole backupDate
     bkupHeading = NORTH;
@@ -104,7 +107,7 @@ Field* mapCreateField(int8_t x, int8_t y, bool startField) {
 }
 
 uint8_t mapLocalToGlobalDirection(uint8_t local) {
-    return (uint8_t)((dir + heading + 1)%4);
+    return (uint8_t)((local + heading + 1)%4);
 }
 
 Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir) {
@@ -148,7 +151,7 @@ void mapRotate(int8_t amount) {
     heading = new%4;
 }
 
-void mapForward() {
+void mapForward(bool ramp) {
     // get last position
     Point lP = {.x=currentField->x, .y=currentField->y};
     // get new position
@@ -159,9 +162,12 @@ void mapForward() {
     if(nF != NULL)
         currentField = nF;
     // if not -> should be an error
+
+    currentFloor->lastField = currentField;
     
     // update map to create new observed fields
-    mapUpdate();
+    if(!ramp)
+        mapUpdate();
 }
 
 void mapFrontFieldBlack() {
@@ -177,10 +183,45 @@ void mapFrontFieldBlack() {
     // if not -> should be an error
 }
 
+void mapSetRamp() {
+    serialPrintInt(255);
+
+    mapForward(true);
+    currentField->type = 4;
+
+    mapSender();
+
+    currentFloor->next = malloc(sizeof(Floor));
+    currentFloor = currentFloor->next;
+    currentFloor->next = NULL;
+    currentFloor->finished = false;
+
+    mapCreateField(0, 0, true);
+    currentField = currentFloor->start;
+    currentFloor->lastField = currentField;
+
+    currentField->type = 4;
+
+    Point cP = {.x=currentField->x, .y=currentField->y};
+    Point nP = mapGetAdjacentPositionLocal(cP, FRONT);
+    mapCreateField(nP.x, nP.y, false);
+
+    mapForward(true);
+
+    currentFloor->origin = currentField;
+}
+
+void mapFinishRamp() {
+    serialPrintInt(255);
+    serialPrintNL();
+    mapSender();
+}
+
 void mapUpdate() {
     // set current position and temporary type
     Point cP = {.x=currentField->x, .y=currentField->y};
-    currentField->type = 1;
+    if(currentField->type != 4)
+        currentField->type = 1;
 
     // request information about surrounding fields
     uint8_t walldata = getWallData(heading);
@@ -218,12 +259,14 @@ void mapUpdate() {
     }
 
     // specify field type and if necessary store backup
-    if(isBlack)
-        currentField->type = 2;
-    else if(isSilver || (currentField == startFloor->start)) {
-        currentField->type = 3;
-        mapMakeBackup();
-    }   
+    if(currentField->type != 4) {
+        if(isBlack)
+            currentField->type = 2;
+        else if(isSilver || (currentField == startFloor->start)) {
+            currentField->type = 3;
+            mapMakeBackup();
+        }
+    }
 }
 
 AdjacentScores mapGetAdjacentScores() {
@@ -243,9 +286,9 @@ AdjacentScores mapGetAdjacentScores() {
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
 
-    if(flag==false && currentField!=currentFloor->start) {
+    if(flag==false && currentField!=currentFloor->origin) {
         fieldPtr = currentFloor->start;
-        currentFloor->start->type = 0;
+        currentFloor->origin->type = 0;
         do {
             if(fieldPtr->type == 2)
                 fieldPtr->score = -1;
@@ -257,7 +300,7 @@ AdjacentScores mapGetAdjacentScores() {
         } while(fieldPtr != NULL);
     }
 
-    if((currentField!=currentFloor->start) || (currentField==currentFloor->start && flag==true)) {
+    if((currentField!=currentFloor->origin) || (currentField==currentFloor->origin && flag==true)) {
 
         int8_t i=127;
 
@@ -280,6 +323,8 @@ AdjacentScores mapGetAdjacentScores() {
     
     }
 
+    bool finished=true;
+
     AdjacentScores aScores;
 
     for(uint8_t dir=0; dir<4; dir++) {
@@ -287,6 +332,16 @@ AdjacentScores mapGetAdjacentScores() {
             aScores.score[dir] = -1;
         else
             aScores.score[dir] = currentField->neighbors[dir]->score;
+
+        if(aScores.score[dir]>0) {
+            finished = false;
+        }
+    }
+
+    if(finished) {
+        currentFloor->finished = true;
+        // rgbSet(255, 255, 255, 0);
+        // while(true);
     }
 
     mapSender();
@@ -353,6 +408,12 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
         do {
             if(srcFieldPtr == srcCurrentField)
                 (*destCurrentField) = destFieldPtr;
+
+            if(srcFieldPtr == srcCurrentFloor->lastField)
+                (*destCurrentFloor)->lastField = destFieldPtr;
+
+            if(srcFieldPtr == srcCurrentFloor->origin)
+                (*destCurrentFloor)->origin = destFieldPtr;
 
             destFieldPtr->x = srcFieldPtr->x;
             destFieldPtr->y = srcFieldPtr->y;

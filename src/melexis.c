@@ -6,10 +6,8 @@ void melexisInit() {
     pinMode(SCL, INPUT_PULLUP);
     i2c_init();
 
-    melexis[0].address = 0xA6;
-    melexis[1].address = 0xA4;
-    melexis[2].address = 0xA2;
-    melexis[3].address = 0xA0;
+    melexis[0].address = 0xA4;
+    melexis[1].address = 0xA0;
 
     nextMelexis = 0;
 }
@@ -22,7 +20,11 @@ void melexisInterrupt() {
     if(melexis[nextMelexis].value>=50)
         melexis[nextMelexis].value = value;
 
-    nextMelexis = (nextMelexis==3 ? 0 : nextMelexis+1);
+    nextMelexis = (nextMelexis == 1 ? 0 : nextMelexis+1);
+}
+
+float melexisVerify(uint8_t i) {
+    return melexisTemperature(melexis[nextMelexis].address);
 }
 
 float melexisTemperature(uint8_t address)

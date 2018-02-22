@@ -43,6 +43,12 @@ typedef struct Floor {
     Field *start;
     Field *end;
 
+    Field *origin;
+
+    Field *lastField;
+
+    bool finished;
+
     struct Floor *next;
 } Floor;
 
@@ -85,9 +91,13 @@ Field* mapFindField(int8_t x, int8_t y);
 
 void mapRotate(int8_t amount);
 
-void mapForward();
+void mapForward(bool ramp);
 
 void mapFrontFieldBlack();
+
+void mapSetRamp();
+
+void mapFinishRamp();
 
 void mapUpdate();
 

@@ -7,12 +7,15 @@
 #include "driveStateMachine.h"
 #include "map.h"
 #include "motor.h"
+#include "ramp.h"
 
 
 
 bool enableNavigation;
 
 bool blackEscaping;
+
+int8_t lastRampState;
 
 int8_t lastAction;
 
