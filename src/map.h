@@ -6,6 +6,7 @@
 #include "config.h"
 #include "analog.h"
 #include "light.h"
+#include "rgb.h"
 
 #include <stdlib.h>
 
@@ -40,10 +41,10 @@ typedef struct Field {
 } Field;
 
 typedef struct Floor {
+    uint8_t id;
+
     Field *start;
     Field *end;
-
-    Field *origin;
 
     Field *lastField;
 
@@ -56,6 +57,16 @@ typedef struct AdjacentScores {
     int8_t score[4];
 } AdjacentScores;
 
+typedef struct Ramp {
+    int8_t floor1;
+    Point field1;
+
+    int8_t floor2;
+    Point field2;
+
+    struct Ramp *next;
+} Ramp;
+
 
 uint8_t heading;
 
@@ -64,6 +75,8 @@ Floor *startFloor;
 Floor *currentFloor;
 
 Field *currentField;
+
+Ramp *firstRamp;
 
 // BACKUP:
 
@@ -74,6 +87,8 @@ Floor *bkupStartFloor;
 Floor *bkupCurrentFloor;
 
 Field *bkupCurrentField;
+
+Ramp *bkupFirstRamp;
 
 // FUNCTIONS:
 
@@ -107,7 +122,7 @@ void mapMakeBackup();
 
 void mapRestoreBackup();
 
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField);
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp);
 
 void mapSender();
 

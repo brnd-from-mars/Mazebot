@@ -9,6 +9,7 @@ void mapInit() {
     startFloor = malloc(sizeof(Floor));
     // set startFloor to currentFloor
     currentFloor = startFloor;
+    currentFloor->id = 0;
     currentFloor->finished = false;
 
     // no next floor exists, yet
@@ -19,13 +20,15 @@ void mapInit() {
     // set startField to currentField
     currentField = currentFloor->start;
     currentFloor->lastField = currentField;
-    currentFloor->origin = currentField;
+
+    firstRamp = NULL;
 
     // set whole backupDate
     bkupHeading = NORTH;
     bkupStartFloor = NULL;
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
+    bkupFirstRamp = NULL;
 
     // update map
     // -> create surrounding visible fields
@@ -184,31 +187,77 @@ void mapFrontFieldBlack() {
 }
 
 void mapSetRamp() {
-    serialPrintInt(255);
-
     mapForward(true);
     currentField->type = 4;
 
-    mapSender();
+    bool newRamp = true;
+    Ramp *rampPtr = firstRamp;
+    Ramp *lastRampPtr = NULL;
+    while(rampPtr!=NULL && newRamp) {
+        Point rP = {.x=currentField->x, .y=currentField->y};
+        if(rampPtr->floor1==currentFloor->id && rampPtr->field1.x==rP.x && rampPtr->field1.y==rP.y)
+            newRamp = false;
+        if(rampPtr->floor2==currentFloor->id && rampPtr->field2.x==rP.x && rampPtr->field2.y==rP.y)
+            newRamp = false;
 
-    currentFloor->next = malloc(sizeof(Floor));
-    currentFloor = currentFloor->next;
-    currentFloor->next = NULL;
-    currentFloor->finished = false;
+        lastRampPtr = rampPtr;
+        rampPtr = rampPtr->next;
+    }
 
-    mapCreateField(0, 0, true);
-    currentField = currentFloor->start;
-    currentFloor->lastField = currentField;
+    if(newRamp) {
+        if(lastRampPtr == NULL) {
+            firstRamp = malloc(sizeof(Ramp));
+            rampPtr = firstRamp;
+        } else {
+            lastRampPtr->next = malloc(sizeof(Ramp));
+            rampPtr = lastRampPtr->next;
+        }
 
-    currentField->type = 4;
+        Point cP = {.x=currentField->x, .y=currentField->y};
 
-    Point cP = {.x=currentField->x, .y=currentField->y};
-    Point nP = mapGetAdjacentPositionLocal(cP, FRONT);
-    mapCreateField(nP.x, nP.y, false);
+        rampPtr->next = NULL;
+        rampPtr->floor1 = currentFloor->id;
+        rampPtr->field1 = cP;
 
-    mapForward(true);
+        currentFloor->next = malloc(sizeof(Floor));
+        currentFloor->next->id = currentFloor->id+1;
+        currentFloor = currentFloor->next;
+        currentFloor->next = NULL;
+        currentFloor->finished = false;
 
-    currentFloor->origin = currentField;
+        mapCreateField(0, 0, true);
+        currentField = currentFloor->start;
+        currentFloor->lastField = currentField;
+
+        currentField->type = 4;
+
+        cP.x = currentField->x;
+        cP.y = currentField->y;
+
+        rampPtr->floor2 = currentFloor->id;
+        rampPtr->field2 = cP;
+
+        Point nP = mapGetAdjacentPositionLocal(cP, FRONT);
+        mapCreateField(nP.x, nP.y, false);
+
+        mapForward(true);
+    } else {
+        if(lastRampPtr->floor1 == currentFloor->id) {
+            Floor *floorPtr = startFloor;
+            while(floorPtr!=NULL && floorPtr->id!=lastRampPtr->floor2)
+                floorPtr = floorPtr->next;
+            currentFloor = floorPtr;
+            currentField = currentFloor->lastField;
+            mapForward(true);
+        } else if(lastRampPtr->floor2 == currentFloor->id) {
+            Floor *floorPtr = startFloor;
+            while(floorPtr!=NULL && floorPtr->id!=lastRampPtr->floor1)
+                floorPtr = floorPtr->next;
+            currentFloor = floorPtr;
+            currentField = currentFloor->lastField;
+            mapForward(true);
+        }
+    }
 }
 
 void mapFinishRamp() {
@@ -286,9 +335,9 @@ AdjacentScores mapGetAdjacentScores() {
         fieldPtr = fieldPtr->next;
     } while(fieldPtr != NULL);
 
-    if(flag==false && currentField!=currentFloor->origin) {
+    if(flag==false && currentField!=currentFloor->start) {
         fieldPtr = currentFloor->start;
-        currentFloor->origin->type = 0;
+        currentFloor->start->type = 0;
         do {
             if(fieldPtr->type == 2)
                 fieldPtr->score = -1;
@@ -300,7 +349,7 @@ AdjacentScores mapGetAdjacentScores() {
         } while(fieldPtr != NULL);
     }
 
-    if((currentField!=currentFloor->origin) || (currentField==currentFloor->origin && flag==true)) {
+    if((currentField!=currentFloor->start) || (currentField==currentFloor->start && flag==true)) {
 
         int8_t i=127;
 
@@ -340,8 +389,8 @@ AdjacentScores mapGetAdjacentScores() {
 
     if(finished) {
         currentFloor->finished = true;
-        // rgbSet(255, 255, 255, 0);
-        // while(true);
+        rgbSet(255, 255, 255, 0);
+        while(true);
     }
 
     mapSender();
@@ -353,7 +402,7 @@ void mapMakeBackup() {
     bkupHeading = heading;
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
-    mapCopy(startFloor, currentFloor, currentField, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField);
+    mapCopy(startFloor, currentFloor, currentField, firstRamp, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField, &bkupFirstRamp);
 }
 
 void mapRestoreBackup() {
@@ -363,11 +412,11 @@ void mapRestoreBackup() {
     heading = bkupHeading;
     currentFloor = NULL;
     currentField = NULL;
-    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, &startFloor, &currentFloor, &currentField);
+    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, bkupFirstRamp, &startFloor, &currentFloor, &currentField, &firstRamp);
     mapSender();
 }
 
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField) {
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp) {
 
     // delete old stuff at the source
 
@@ -389,7 +438,38 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
         destFloorPtr = nextFloor;
     }
 
+    Ramp *destRampPtr = (*destStartRamp);
+
+    while(destRampPtr!=NULL) {
+        Ramp *nextRamp = destRampPtr->next;
+        free(destRampPtr);
+        destRampPtr = nextRamp;
+    }
+
     // copy the whole stuff
+
+    Ramp *srcRampPtr = srcRampPtr;
+    destRampPtr = NULL;
+    (*destStartRamp) = destRampPtr;
+
+
+    while(srcRampPtr!=NULL) {
+        if(destRampPtr==NULL) {
+            destRampPtr = malloc(sizeof(Ramp));
+            (*destStartRamp) = destRampPtr;
+        } else {
+            destRampPtr->next = malloc(sizeof(Ramp));
+            destRampPtr = destRampPtr->next;
+        }
+
+        destRampPtr->floor1 = srcRampPtr->floor1;
+        destRampPtr->field1 = srcRampPtr->field1;
+        destRampPtr->floor2 = srcRampPtr->floor2;
+        destRampPtr->field2 = srcRampPtr->field2;
+        destRampPtr->next = NULL;
+
+        srcRampPtr = srcRampPtr->next;
+    }
     
     Floor *srcFloorPtr = srcStartFloor;
 
@@ -399,6 +479,9 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
     do {
         if(srcFloorPtr == srcCurrentFloor)
             (*destCurrentFloor) = destFloorPtr;
+
+        destFloorPtr->finished = srcFloorPtr->finished;
+        destFloorPtr->id = srcFloorPtr->id;
         
         Field *srcFieldPtr = srcFloorPtr->start;
 
@@ -411,9 +494,6 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
 
             if(srcFieldPtr == srcCurrentFloor->lastField)
                 (*destCurrentFloor)->lastField = destFieldPtr;
-
-            if(srcFieldPtr == srcCurrentFloor->origin)
-                (*destCurrentFloor)->origin = destFieldPtr;
 
             destFieldPtr->x = srcFieldPtr->x;
             destFieldPtr->y = srcFieldPtr->y;

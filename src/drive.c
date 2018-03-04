@@ -41,7 +41,7 @@ void rotate(int16_t speed) {
 }
 
 bool correctRotationPosition(bool start) {
-    uint16_t walllimit = 120;
+    uint16_t walllimit = 100;
 
     if(start) {
         correctionStart = millis();

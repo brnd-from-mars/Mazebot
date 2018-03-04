@@ -8,3 +8,4 @@
 
 src/dox/
 src/Doxyfile
+.vscode/*.db

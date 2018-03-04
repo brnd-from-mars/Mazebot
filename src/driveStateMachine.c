@@ -93,7 +93,7 @@ void processForward() {
             correctRotationPosition(true);
             forwardState = 2;
         } else {
-            int speed = 160;
+            int speed = 140;
             if (distanceCoveredEnc() > (int)(0.5*abs(targetEncoderValue)))
                 speed = (int)(1.5*speed - speed*distanceCoveredEnc()/abs(targetEncoderValue));
             
