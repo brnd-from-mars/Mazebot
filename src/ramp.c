@@ -23,11 +23,11 @@ void rampInterrupt() {
     }
 
     if(accel < RAMP_DOWN) {
-        if(maybeOnRampDown+1 < 200)
-            maybeOnRampDown++;
+        if(maybeOnRampDown+2 < 200)
+            maybeOnRampDown+=2;
     } else {
-        if(maybeOnRampDown-4 > 0)
-            maybeOnRampDown -= 4;
+        if(maybeOnRampDown-3 > 0)
+            maybeOnRampDown -= 3;
         else
             maybeOnRampDown = 0;
     }

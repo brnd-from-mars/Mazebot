@@ -24,11 +24,13 @@ void navigate() {
 
     if(rampState==1) {
         drive(160, 0.5, 0.02, 1.0);
+        rgbSet(32, 32, 32, 0);
         if(lastRampState!=1) {
             mapSetRamp();
         }
     } else if(rampState==-1) {
         drive(80, 0.5, 0.02, 1.0);
+        rgbSet(32, 32, 32, 0);
         if(lastRampState!=-1) {
             mapSetRamp();
         }

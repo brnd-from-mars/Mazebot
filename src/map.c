@@ -258,6 +258,9 @@ void mapSetRamp() {
             mapForward(true);
         }
     }
+
+    serialPrintInt(255);
+    mapSender();
 }
 
 void mapFinishRamp() {
@@ -394,7 +397,6 @@ AdjacentScores mapGetAdjacentScores() {
     }
 
     mapSender();
-
     return aScores;
 }
 
@@ -548,25 +550,25 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
 }
 
 void mapSender() {
-    Field *fieldPtr = currentFloor->start;
+    // Field *fieldPtr = currentFloor->start;
 
-    serialPrintNL();
-    serialPrintNL();
-    serialPrintInt(currentField->x);
-    serialPrintInt(currentField->y);
-    serialPrintInt(heading);
-    serialPrintNL();
+    // serialPrintNL();
+    // serialPrintNL();
+    // serialPrintInt(currentField->x);
+    // serialPrintInt(currentField->y);
+    // serialPrintInt(heading);
+    // serialPrintNL();
 
-    do {
-        serialPrintInt(fieldPtr->x);
-        serialPrintInt(fieldPtr->y);
-        serialPrintInt(fieldPtr->type);
-        serialPrintInt(fieldPtr->score);
-        for(uint8_t dir=0; dir<4; dir++)
-            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
-        serialPrintNL();
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
+    // do {
+    //     serialPrintInt(fieldPtr->x);
+    //     serialPrintInt(fieldPtr->y);
+    //     serialPrintInt(fieldPtr->type);
+    //     serialPrintInt(fieldPtr->score);
+    //     for(uint8_t dir=0; dir<4; dir++)
+    //         serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
+    //     serialPrintNL();
+    //     fieldPtr = fieldPtr->next;
+    // } while(fieldPtr != NULL);
 
-    serialPrintNL();
+    // serialPrintNL();
 }
