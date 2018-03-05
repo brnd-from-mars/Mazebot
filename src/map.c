@@ -418,6 +418,11 @@ void mapRestoreBackup() {
     mapSender();
 }
 
+// don't touch this
+// it works
+// 
+// somehow
+// in a way
 void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp) {
 
     // delete old stuff at the source
@@ -550,25 +555,25 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
 }
 
 void mapSender() {
-    // Field *fieldPtr = currentFloor->start;
+    Field *fieldPtr = currentFloor->start;
 
-    // serialPrintNL();
-    // serialPrintNL();
-    // serialPrintInt(currentField->x);
-    // serialPrintInt(currentField->y);
-    // serialPrintInt(heading);
-    // serialPrintNL();
+    serialPrintNL();
+    serialPrintNL();
+    serialPrintInt(currentField->x);
+    serialPrintInt(currentField->y);
+    serialPrintInt(heading);
+    serialPrintNL();
 
-    // do {
-    //     serialPrintInt(fieldPtr->x);
-    //     serialPrintInt(fieldPtr->y);
-    //     serialPrintInt(fieldPtr->type);
-    //     serialPrintInt(fieldPtr->score);
-    //     for(uint8_t dir=0; dir<4; dir++)
-    //         serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
-    //     serialPrintNL();
-    //     fieldPtr = fieldPtr->next;
-    // } while(fieldPtr != NULL);
+    do {
+        serialPrintInt(fieldPtr->x);
+        serialPrintInt(fieldPtr->y);
+        serialPrintInt(fieldPtr->type);
+        serialPrintInt(fieldPtr->score);
+        for(uint8_t dir=0; dir<4; dir++)
+            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
+        serialPrintNL();
+        fieldPtr = fieldPtr->next;
+    } while(fieldPtr != NULL);
 
-    // serialPrintNL();
+    serialPrintNL();
 }
