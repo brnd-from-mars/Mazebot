@@ -16,9 +16,11 @@ void victimRecognition() {
         case -1:
             for(uint8_t i=0; i<2; i++) {
                 if(melexis[i].value >= VICTIM_TEMPERATURE) {
-                    victimPosition = i;
-                    victimState = 1;
-                    enableNavigation = false;
+                    if(!mapAlreadyVictimRecognized((i==0 ? 1 : -1), getRotationProcess(), getForwardProcess())) {
+                        victimPosition = i;
+                        victimState = 1;
+                        enableNavigation = false;
+                    }
                 }
             }
             break;
@@ -38,11 +40,11 @@ void victimRecognition() {
         case 1:
             motorBrake();
             rgbSet(128, 0, 0, 0);
-            victimSetKitdropper = victimPosition;
             if(victimPosition == 0)
                 victimSetKitdropper = 1;
             if(victimPosition == 1)
                 victimSetKitdropper = -1;
+            mapSetVictim(victimSetKitdropper, getRotationProcess(), getForwardProcess());
             victimStart = millis();
             victimState = 2;
             break;

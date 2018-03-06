@@ -22,7 +22,7 @@
 #define TIMER_STOP TCCR5B &= ~((1<<CS50)|(1<<CS51))
 #define TIMER_START TCCR5B |= (1<<CS50)|(1<<CS51)
 
-#define VICTIM_TEMPERATURE 30
+#define VICTIM_TEMPERATURE 25
 
 #define RAMP_UP 345
 #define RAMP_DOWN 325

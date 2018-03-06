@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "driveStateMachine.h"
+#include "map.h"
 #include "melexis.h"
 #include "motor.h"
 #include "rgb.h"

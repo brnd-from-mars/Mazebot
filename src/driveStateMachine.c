@@ -121,3 +121,22 @@ int distanceCoveredEnc() {
     
     return (int)(0.25*sum);
 }
+
+int getRotationProcess()
+{
+    if(rotateState != -1)
+        if(abs(distanceCoveredEnc())>abs(targetEncoderValue)/2)
+            return SIGNUM(targetEncoderValue);
+
+    return 0;
+}
+
+int getForwardProcess()
+{
+    if(forwardState != -1)
+        if(SIGNUM(targetEncoderValue)==1)
+            if(abs(distanceCoveredEnc())>abs(targetEncoderValue)/2)
+                return 1;
+
+    return 0;
+}

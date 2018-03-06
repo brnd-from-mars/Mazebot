@@ -1,4 +1,4 @@
-#include "map.h"
+#include "map.h" // geht nicht putt
 
 
 void mapInit() {
@@ -265,8 +265,58 @@ void mapSetRamp() {
 
 void mapFinishRamp() {
     serialPrintInt(255);
-    serialPrintNL();
     mapSender();
+}
+
+void mapSetVictim(int side, int rotOffset, bool front) {
+    int dir = (int)((heading + rotOffset + side)%4);
+    int floor = currentFloor->id;
+    Point field = {.x=currentField->x, .y=currentField->y};
+
+    if(front)
+        field = mapGetAdjacentPositionLocal(field, FRONT);
+
+    if(firstVictim == NULL)
+    {
+        firstVictim = malloc(sizeof(Victim));
+        firstVictim->next = NULL;
+
+        firstVictim->dir = dir;
+        firstVictim->floor = floor;
+        firstVictim->field = field;
+    } else {
+        Victim *victimPtr = firstVictim;
+
+        while(victimPtr->next != NULL)
+            victimPtr = victimPtr->next;
+
+        victimPtr->next = malloc(sizeof(Victim));
+        victimPtr = victimPtr->next;
+        victimPtr->next = NULL;
+
+        victimPtr->dir = dir;
+        victimPtr->floor = floor;
+        victimPtr->field = field;
+    }
+}
+
+bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front) {
+    int dir = (int)((heading + rotOffset + side)%4);
+    int floor = currentFloor->id;
+    Point field = {.x=currentField->x, .y=currentField->y};
+
+    if(front)
+        field = mapGetAdjacentPositionLocal(field, FRONT);
+
+    Victim *victimPtr = firstVictim;
+
+    while(victimPtr->next != NULL) {
+        if(victimPtr->field.x == field.x && victimPtr->field.y == field.y && victimPtr->floor == floor && victimPtr->dir == dir) 
+            return true;
+        victimPtr = victimPtr->next;        
+    }
+
+    return false;
 }
 
 void mapUpdate() {
@@ -404,7 +454,7 @@ void mapMakeBackup() {
     bkupHeading = heading;
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
-    mapCopy(startFloor, currentFloor, currentField, firstRamp, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField, &bkupFirstRamp);
+    mapCopy(startFloor, currentFloor, currentField, firstRamp, firstVictim, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField, &bkupFirstRamp, &bkupFirstVictim);
 }
 
 void mapRestoreBackup() {
@@ -414,7 +464,7 @@ void mapRestoreBackup() {
     heading = bkupHeading;
     currentFloor = NULL;
     currentField = NULL;
-    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, bkupFirstRamp, &startFloor, &currentFloor, &currentField, &firstRamp);
+    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, bkupFirstRamp, bkupFirstVictim, &startFloor, &currentFloor, &currentField, &firstRamp, &firstVictim);
     mapSender();
 }
 
@@ -423,7 +473,7 @@ void mapRestoreBackup() {
 // 
 // somehow
 // in a way
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp) {
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Victim *srcStartVictim, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp, Victim **destStartVictim) {
 
     // delete old stuff at the source
 
@@ -453,6 +503,15 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
         destRampPtr = nextRamp;
     }
 
+    Victim *destVictimPtr = (*destStartVictim);
+
+    while(destVictimPtr!=NULL)
+    {
+        Victim *nextVictim = destVictimPtr->next;
+        free(destVictimPtr);
+        destVictimPtr = nextVictim;
+    }
+
     // copy the whole stuff
 
     Ramp *srcRampPtr = srcRampPtr;
@@ -476,6 +535,27 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
         destRampPtr->next = NULL;
 
         srcRampPtr = srcRampPtr->next;
+    }
+
+    Victim *srcVictimPtr = srcStartVictim;
+    destVictimPtr = NULL;
+    (*destStartVictim) = destVictimPtr;
+
+    while(srcVictimPtr!=NULL)
+    {
+        if(destVictimPtr==NULL) {
+            destVictimPtr = malloc(sizeof(Victim));
+            (*destStartVictim) = destVictimPtr;
+        } else {
+            destVictimPtr->next = malloc(sizeof(Victim));
+            destVictimPtr = destVictimPtr->next;
+        }
+
+        destVictimPtr->dir = srcVictimPtr->dir;
+        destVictimPtr->floor = srcVictimPtr->floor;
+        destVictimPtr->field = srcVictimPtr->field;
+
+        srcVictimPtr = srcVictimPtr->next;
     }
     
     Floor *srcFloorPtr = srcStartFloor;
@@ -555,25 +635,37 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
 }
 
 void mapSender() {
-    Field *fieldPtr = currentFloor->start;
+    // Field *fieldPtr = currentFloor->start;
 
-    serialPrintNL();
-    serialPrintNL();
-    serialPrintInt(currentField->x);
-    serialPrintInt(currentField->y);
-    serialPrintInt(heading);
-    serialPrintNL();
+    // serialPrintNL();
+    // serialPrintNL();
+    // serialPrintInt(currentField->x);
+    // serialPrintInt(currentField->y);
+    // serialPrintInt(heading);
+    // serialPrintNL();
 
-    do {
-        serialPrintInt(fieldPtr->x);
-        serialPrintInt(fieldPtr->y);
-        serialPrintInt(fieldPtr->type);
-        serialPrintInt(fieldPtr->score);
-        for(uint8_t dir=0; dir<4; dir++)
-            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
+    // do {
+    //     serialPrintInt(fieldPtr->x);
+    //     serialPrintInt(fieldPtr->y);
+    //     serialPrintInt(fieldPtr->type);
+    //     serialPrintInt(fieldPtr->score);
+    //     for(uint8_t dir=0; dir<4; dir++)
+    //         serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
+    //     serialPrintNL();
+    //     fieldPtr = fieldPtr->next;
+    // } while(fieldPtr != NULL);
+
+    // serialPrintNL();
+
+    Victim *victimPtr = firstVictim;
+
+    while(victimPtr != NULL)
+    {
+        serialPrintInt(victimPtr->floor);
+        serialPrintInt(victimPtr->field.x);
+        serialPrintInt(victimPtr->field.y);
+        serialPrintInt(victimPtr->dir);
         serialPrintNL();
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
-
-    serialPrintNL();
+        victimPtr = victimPtr->next;
+    }
 }

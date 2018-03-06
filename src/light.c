@@ -28,8 +28,8 @@ void lightMeasure() {
         darknessRight = analogRead(A9);
     }
 
-    isBlack = ((darknessLeft > BLACK_MIN) || (darknessRight > BLACK_MIN));
-    isSilver = (darknessRight < SILVER_MAX);
+    // isBlack = ((darknessLeft > BLACK_MIN) || (darknessRight > BLACK_MIN));
+    // isSilver = (darknessRight < SILVER_MAX);
 
     digitalWrite(24, LOW);
     hiPoLedActive = false;
