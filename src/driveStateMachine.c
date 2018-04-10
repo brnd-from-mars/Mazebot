@@ -10,19 +10,19 @@ void startRotate(int angle) {
     switch(angle) {
     case 90:
         rotateState = 0;
-        targetEncoderValue = 73;
+        targetEncoderValue = 65;
         break;
     case -90:
         rotateState = 0;
-        targetEncoderValue = -73;
+        targetEncoderValue = -65;
         break;
     case 180:
         rotateState = 0;
-        targetEncoderValue = 146;
+        targetEncoderValue = 130;
         break;
     case -180:
         rotateState = 0;
-        targetEncoderValue = -146;
+        targetEncoderValue = -130;
         break;
     }
 }
@@ -56,9 +56,6 @@ void processRotate() {
             rotateState = 2;
         } else {
             int speed=160;
-            if (distanceCoveredEnc() > (int)(0.5*abs(targetEncoderValue)))
-                speed = (int)(1.5*speed - speed*distanceCoveredEnc()/abs(targetEncoderValue));
-            
             rgbSet(0, 32, 0, 0);
             rotate(SIGNUM(targetEncoderValue)*(uint8_t)(speed));
         }
@@ -98,7 +95,7 @@ void processForward() {
                 speed = (int)(1.5*speed - speed*distanceCoveredEnc()/abs(targetEncoderValue));
             
             rgbSet(0, 32, 0, 0);
-            drive(SIGNUM(targetEncoderValue)*(uint8_t)(speed), 0.5, 0.02, 1.0);
+            drive(SIGNUM(targetEncoderValue)*(uint8_t)(speed), 0.5, 0.02, 0.7);
         }
         break;
     // correct position and orientation

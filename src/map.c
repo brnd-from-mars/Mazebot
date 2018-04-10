@@ -22,6 +22,7 @@ void mapInit() {
     currentFloor->lastField = currentField;
 
     firstRamp = NULL;
+    firstVictim = NULL;
 
     // set whole backupDate
     bkupHeading = NORTH;
@@ -29,6 +30,11 @@ void mapInit() {
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
     bkupFirstRamp = NULL;
+
+    blockRampUp = false;
+    blockRampDown = false;
+    bkupBlockRampUp = false;
+    bkupBlockRampDown = false;
 
     // update map
     // -> create surrounding visible fields
@@ -268,9 +274,18 @@ void mapFinishRamp() {
     mapSender();
 }
 
+bool mapJustFinishedRamp()
+{
+    int dir = mapLocalToGlobalDirection(BACK);
+
+    return (currentField->neighbors[dir]->type == 4);
+}
+
 void mapSetVictim(int side, int rotOffset, bool front) {
-    int dir = (int)((heading + rotOffset + side)%4);
-    int floor = currentFloor->id;
+    int dir = (int)(heading + rotOffset + side);
+    dir = dir%4;
+    while(dir<0)
+        dir+=4;
     Point field = {.x=currentField->x, .y=currentField->y};
 
     if(front)
@@ -282,7 +297,7 @@ void mapSetVictim(int side, int rotOffset, bool front) {
         firstVictim->next = NULL;
 
         firstVictim->dir = dir;
-        firstVictim->floor = floor;
+        firstVictim->floor = currentFloor->id;
         firstVictim->field = field;
     } else {
         Victim *victimPtr = firstVictim;
@@ -301,7 +316,10 @@ void mapSetVictim(int side, int rotOffset, bool front) {
 }
 
 bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front) {
-    int dir = (int)((heading + rotOffset + side)%4);
+    int dir = (int)(heading + rotOffset + side);
+    dir = dir%4;
+    while(dir<0)
+        dir+=4;
     int floor = currentFloor->id;
     Point field = {.x=currentField->x, .y=currentField->y};
 
@@ -311,9 +329,12 @@ bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front) {
     Victim *victimPtr = firstVictim;
 
     while(victimPtr->next != NULL) {
-        if(victimPtr->field.x == field.x && victimPtr->field.y == field.y && victimPtr->floor == floor && victimPtr->dir == dir) 
+        if(victimPtr->field.x == field.x &&
+            victimPtr->field.y == field.y &&
+            victimPtr->floor == floor &&
+            victimPtr->dir == dir) 
             return true;
-        victimPtr = victimPtr->next;        
+        victimPtr = victimPtr->next;
     }
 
     return false;
@@ -425,8 +446,6 @@ AdjacentScores mapGetAdjacentScores() {
     
     }
 
-    bool finished=true;
-
     AdjacentScores aScores;
 
     for(uint8_t dir=0; dir<4; dir++) {
@@ -434,16 +453,6 @@ AdjacentScores mapGetAdjacentScores() {
             aScores.score[dir] = -1;
         else
             aScores.score[dir] = currentField->neighbors[dir]->score;
-
-        if(aScores.score[dir]>0) {
-            finished = false;
-        }
-    }
-
-    if(finished) {
-        currentFloor->finished = true;
-        rgbSet(255, 255, 255, 0);
-        while(true);
     }
 
     mapSender();
@@ -455,6 +464,8 @@ void mapMakeBackup() {
     bkupCurrentFloor = NULL;
     bkupCurrentField = NULL;
     mapCopy(startFloor, currentFloor, currentField, firstRamp, firstVictim, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField, &bkupFirstRamp, &bkupFirstVictim);
+    bkupBlockRampUp = blockRampUp;
+    bkupBlockRampDown = blockRampDown;
 }
 
 void mapRestoreBackup() {
@@ -466,6 +477,8 @@ void mapRestoreBackup() {
     currentField = NULL;
     mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, bkupFirstRamp, bkupFirstVictim, &startFloor, &currentFloor, &currentField, &firstRamp, &firstVictim);
     mapSender();
+    blockRampUp = bkupBlockRampUp;
+    blockRampDown = bkupBlockRampDown;
 }
 
 // don't touch this
@@ -635,37 +648,26 @@ void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentFiel
 }
 
 void mapSender() {
-    // Field *fieldPtr = currentFloor->start;
+    Field *fieldPtr = currentFloor->start;
 
-    // serialPrintNL();
-    // serialPrintNL();
-    // serialPrintInt(currentField->x);
-    // serialPrintInt(currentField->y);
-    // serialPrintInt(heading);
-    // serialPrintNL();
+    serialPrintNL();
+    serialPrintNL();
+    serialPrintInt(currentField->x);
+    serialPrintInt(currentField->y);
+    serialPrintInt(heading);
+    serialPrintInt(currentFloor->id);
+    serialPrintNL();
 
-    // do {
-    //     serialPrintInt(fieldPtr->x);
-    //     serialPrintInt(fieldPtr->y);
-    //     serialPrintInt(fieldPtr->type);
-    //     serialPrintInt(fieldPtr->score);
-    //     for(uint8_t dir=0; dir<4; dir++)
-    //         serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
-    //     serialPrintNL();
-    //     fieldPtr = fieldPtr->next;
-    // } while(fieldPtr != NULL);
-
-    // serialPrintNL();
-
-    Victim *victimPtr = firstVictim;
-
-    while(victimPtr != NULL)
-    {
-        serialPrintInt(victimPtr->floor);
-        serialPrintInt(victimPtr->field.x);
-        serialPrintInt(victimPtr->field.y);
-        serialPrintInt(victimPtr->dir);
+    do {
+        serialPrintInt(fieldPtr->x);
+        serialPrintInt(fieldPtr->y);
+        serialPrintInt(fieldPtr->type);
+        serialPrintInt(fieldPtr->score);
+        for(uint8_t dir=0; dir<4; dir++)
+            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
         serialPrintNL();
-        victimPtr = victimPtr->next;
-    }
+        fieldPtr = fieldPtr->next;
+    } while(fieldPtr != NULL);
+
+    serialPrintNL();
 }

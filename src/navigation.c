@@ -12,7 +12,7 @@ void navigationInit() {
 
 
 void navigate() {
-    if(isBlack && !blackEscaping) {
+    if(isBlack && !blackEscaping && !mapJustFinishedRamp() && rampState==0) {
         motorBrake();
         int distanceEnc = distanceCoveredEnc();
         encoderReset();
@@ -37,6 +37,7 @@ void navigate() {
     } else {
         if(lastRampState!=0) {
             mapFinishRamp();
+            driveReset();
         }
 
         if(rotateState==-1 && lastRotateState!=rotateState)

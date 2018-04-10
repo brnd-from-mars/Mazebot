@@ -88,6 +88,10 @@ Ramp *firstRamp;
 
 Victim *firstVictim;
 
+bool blockRampUp;
+
+bool blockRampDown;
+
 // BACKUP:
 
 uint8_t bkupHeading;
@@ -101,6 +105,10 @@ Field *bkupCurrentField;
 Ramp *bkupFirstRamp;
 
 Victim *bkupFirstVictim;
+
+bool bkupBlockRampUp;
+
+bool bkupBlockRampDown;
 
 // FUNCTIONS:
 
@@ -125,6 +133,8 @@ void mapFrontFieldBlack();
 void mapSetRamp();
 
 void mapFinishRamp();
+
+bool mapJustFinishedRamp();
 
 void mapSetVictim(int side, int rotOffset, bool front);
 

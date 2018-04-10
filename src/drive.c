@@ -15,10 +15,6 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
 
     int targetWalldistance = 250;
 
-    if(entireWall(RIGHT, 150) && entireWall(LEFT, 150)) {
-        targetWalldistance = trunc((sharp[3].value + sharp[5].value)/2);
-    }
-
     if(entireWall(RIGHT, 200)) {
         errorP = targetWalldistance - (int)(sharp[3].value);
         errorI = errorI + errorP;

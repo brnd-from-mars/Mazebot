@@ -16,11 +16,9 @@ void victimRecognition() {
         case -1:
             for(uint8_t i=0; i<2; i++) {
                 if(melexis[i].value >= VICTIM_TEMPERATURE) {
-                    if(!mapAlreadyVictimRecognized((i==0 ? 1 : -1), getRotationProcess(), getForwardProcess())) {
-                        victimPosition = i;
-                        victimState = 1;
-                        enableNavigation = false;
-                    }
+                    victimPosition = i;
+                    victimState = 1;
+                    enableNavigation = false;
                 }
             }
             break;
@@ -44,7 +42,6 @@ void victimRecognition() {
                 victimSetKitdropper = 1;
             if(victimPosition == 1)
                 victimSetKitdropper = -1;
-            mapSetVictim(victimSetKitdropper, getRotationProcess(), getForwardProcess());
             victimStart = millis();
             victimState = 2;
             break;

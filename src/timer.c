@@ -28,6 +28,7 @@ ISR( TIMER5_COMPA_vect ) {
     loopCnt++;
     analogInterrupt();
     switchInterrupt();
+    // encoderInterrupt();
     switch(loopCnt) {
 #ifdef BLACK_RECOGNITION
     case 10:
