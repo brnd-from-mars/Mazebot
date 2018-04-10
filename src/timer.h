@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "analog.h"
+// #include "encoder.h"
 #include "light.h"
 #include "melexis.h"
 #include "ramp.h"

@@ -15,10 +15,6 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
 
     int targetWalldistance = 250;
 
-    if(entireWall(RIGHT, 150) && entireWall(LEFT, 150)) {
-        targetWalldistance = trunc((sharp[3].value + sharp[5].value)/2);
-    }
-
     if(entireWall(RIGHT, 200)) {
         errorP = targetWalldistance - (int)(sharp[3].value);
         errorI = errorI + errorP;
@@ -31,8 +27,8 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
         errorI = 0;
     }
 
-    motorSetLeftSpeed(baseSpeed + trunc(errorP * kP) + trunc(errorI * kI) + trunc(errorD * kD));
-    motorSetRightSpeed(baseSpeed - trunc(errorP * kP) - trunc(errorI * kI) - trunc(errorD * kD));
+    motorSetLeftSpeed(baseSpeed + (int)(errorP * kP) + (int)(errorI * kI) + (int)(errorD * kD));
+    motorSetRightSpeed(baseSpeed - (int)(errorP * kP) - (int)(errorI * kI) - (int)(errorD * kD));
 }
 
 void rotate(int16_t speed) {
@@ -55,7 +51,7 @@ bool correctRotationPosition(bool start) {
             uint8_t referenceWallsPos=0;
 
             if(entireWall(RIGHT, walllimit)) {
-                errorRot+=(sharp[5].value - sharp[3].value);
+                errorRot += (sharp[5].value - sharp[3].value);
                 referenceWallsRot++;
             }
             if(entireWall(BACK, walllimit)) {
@@ -65,11 +61,11 @@ bool correctRotationPosition(bool start) {
                 referenceWallsPos++;
             }
             if(entireWall(LEFT, walllimit)) {
-                errorRot+=(sharp[4].value - sharp[6].value);
+                errorRot += (sharp[4].value - sharp[6].value);
                 referenceWallsRot++;
             }
             if(entireWall(FRONT, walllimit)) {
-                errorRot += (sharp[1].value -sharp[2].value);
+                errorRot += (sharp[1].value - sharp[2].value);
                 referenceWallsRot++;
                 errorPos += (250-(int)(trunc((sharp[0].value + sharp[1].value + sharp[2].value)/3)));
                 referenceWallsPos++;
@@ -84,29 +80,26 @@ bool correctRotationPosition(bool start) {
             int16_t rightSpeed=0;
 
             if(referenceWallsPos != 0) {
-                leftSpeed += (int16_t)(trunc(0.8*errorPos/referenceWallsPos));
-                rightSpeed += (int16_t)(trunc(0.8*errorPos/referenceWallsPos));
+                leftSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
+                rightSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
             }
 
             if(referenceWallsRot != 0) {
-                leftSpeed += (int16_t)(trunc(1.8*errorRot/referenceWallsRot));
-                rightSpeed -= (int16_t)(trunc(1.8*errorRot/referenceWallsRot));
+                leftSpeed += (int16_t)(trunc(2.0*errorRot/referenceWallsRot));
+                rightSpeed -= (int16_t)(trunc(2.0*errorRot/referenceWallsRot));
             }
 
-            //leftSpeed = (int16_t)(leftSpeed * 1.5);
-            //rightSpeed = (int16_t)(rightSpeed * 1.5);
-
-            if(abs(leftSpeed)<30 && abs(rightSpeed)<30) {
+            if(abs(leftSpeed)<40 && abs(rightSpeed)<40) {
                 motorBrake();
                 return false;
             }
 
-            if(abs(leftSpeed)>170) {
-                leftSpeed = SIGNUM(leftSpeed)*170;
+            if(abs(leftSpeed)>100) {
+                leftSpeed = SIGNUM(leftSpeed)*100;
             }
 
-            if(abs(rightSpeed)>170) {
-                rightSpeed = SIGNUM(rightSpeed)*170;
+            if(abs(rightSpeed)>100) {
+                rightSpeed = SIGNUM(rightSpeed)*100;
             }
 
             motorSetLeftSpeed(leftSpeed);

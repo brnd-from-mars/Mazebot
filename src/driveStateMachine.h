@@ -28,5 +28,9 @@ void processForward();
 
 int distanceCoveredEnc();
 
+int getRotationProcess();
+
+int getForwardProcess();
+
 
 #endif

@@ -38,7 +38,6 @@ void victimRecognition() {
         case 1:
             motorBrake();
             rgbSet(128, 0, 0, 0);
-            victimSetKitdropper = victimPosition;
             if(victimPosition == 0)
                 victimSetKitdropper = 1;
             if(victimPosition == 1)

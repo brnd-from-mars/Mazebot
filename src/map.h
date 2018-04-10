@@ -67,6 +67,14 @@ typedef struct Ramp {
     struct Ramp *next;
 } Ramp;
 
+typedef struct Victim {
+    int8_t dir;
+    int8_t floor;
+    Point field;
+
+    struct Victim *next;
+} Victim;
+
 
 uint8_t heading;
 
@@ -77,6 +85,12 @@ Floor *currentFloor;
 Field *currentField;
 
 Ramp *firstRamp;
+
+Victim *firstVictim;
+
+bool blockRampUp;
+
+bool blockRampDown;
 
 // BACKUP:
 
@@ -89,6 +103,12 @@ Floor *bkupCurrentFloor;
 Field *bkupCurrentField;
 
 Ramp *bkupFirstRamp;
+
+Victim *bkupFirstVictim;
+
+bool bkupBlockRampUp;
+
+bool bkupBlockRampDown;
 
 // FUNCTIONS:
 
@@ -114,6 +134,12 @@ void mapSetRamp();
 
 void mapFinishRamp();
 
+bool mapJustFinishedRamp();
+
+void mapSetVictim(int side, int rotOffset, bool front);
+
+bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front);
+
 void mapUpdate();
 
 AdjacentScores mapGetAdjacentScores();
@@ -122,7 +148,7 @@ void mapMakeBackup();
 
 void mapRestoreBackup();
 
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp);
+void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Victim *srcStartVictim, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp, Victim **destStartVictim);
 
 void mapSender();
 
