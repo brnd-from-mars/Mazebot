@@ -31,22 +31,22 @@ void rampInterrupt() {
             maybeOnRampDown = 0;
     }
     
-    if(maybeOnRampUp >= 30 && !blockRampUp) {
+    if(maybeOnRampUp >= 30/** && !blockRampUp*/) {
         if(maybeOnRampUp < 40 && rampState != 1)
             maybeOnRampUp = 40;
         rampState = 1;
-    } else if(maybeOnRampDown >= 30 && !blockRampDown) {
+    } else if(maybeOnRampDown >= 30/** && !blockRampDown*/) {
         if(maybeOnRampDown < 50 && rampState != -1)
             maybeOnRampDown = 50;
         rampState = -1;
     } else {
-        if(rampState == 1) {
-            blockRampUp = true;
-            blockRampDown = false;
-        } else if(rampState == -1) {
-            blockRampUp = false;
-            blockRampDown = true;
-        }
+        // if(rampState == 1) {
+        //     blockRampUp = true;
+        //     blockRampDown = false;
+        // } else if(rampState == -1) {
+        //     blockRampUp = false;
+        //     blockRampDown = true;
+        // }
         rampState = 0;
     }   
 }

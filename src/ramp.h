@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "navigation.h"
-#include "map.h"
+//#include "map.h"
 
 
 uint16_t accel;

@@ -12,11 +12,11 @@ void navigationInit() {
 
 
 void navigate() {
-    if(isBlack && !blackEscaping && !mapJustFinishedRamp() && rampState==0) {
+    if(isBlack && !blackEscaping) {
         motorBrake();
         int distanceEnc = distanceCoveredEnc();
         encoderReset();
-        mapFrontFieldBlack();
+        // mapFrontFieldBlack();
         startForwardEnc(-distanceEnc);
         lastAction = 4;
         blackEscaping = true;
@@ -26,25 +26,25 @@ void navigate() {
         drive(160, 0.5, 0.02, 1.0);
         rgbSet(32, 32, 32, 0);
         if(lastRampState!=1) {
-            mapSetRamp();
+            // mapSetRamp();
         }
     } else if(rampState==-1) {
         drive(80, 0.5, 0.02, 1.0);
         rgbSet(32, 32, 32, 0);
         if(lastRampState!=-1) {
-            mapSetRamp();
+            // mapSetRamp();
         }
     } else {
         if(lastRampState!=0) {
-            mapFinishRamp();
+            // mapFinishRamp();
             driveReset();
         }
 
         if(rotateState==-1 && lastRotateState!=rotateState)
-            navigationUpdateMap(lastAction);
+            // navigationUpdateMap(lastAction);
 
         if(forwardState==-1 && lastForwardState!=forwardState)
-            navigationUpdateMap(lastAction);
+            // navigationUpdateMap(lastAction);
 
         lastRotateState = rotateState;
         lastForwardState = forwardState;
@@ -54,35 +54,35 @@ void navigate() {
         else if(forwardState!=-1)
             processForward();
         else {
-            AdjacentScores gScores = mapGetAdjacentScores();
-            int8_t lScores[4];
+            // AdjacentScores gScores = mapGetAdjacentScores();
+            // int8_t lScores[4];
 
-            for(uint8_t dir=0; dir<4; dir++) {
-                lScores[(dir-heading+3)%4] = gScores.score[dir];
-            }
+            // for(uint8_t dir=0; dir<4; dir++) {
+                // lScores[(dir-heading+3)%4] = gScores.score[dir];
+            // }
 
-            int8_t maxValue = -2;
-            for(uint8_t lDir=0; lDir<4; lDir++)  {
-                if(lScores[lDir]>=maxValue) {
-                    maxValue = lScores[lDir];
-                }
-            }
+            // int8_t maxValue = -2;
+            // for(uint8_t lDir=0; lDir<4; lDir++)  {
+            //     if(lScores[lDir]>=maxValue) {
+            //         maxValue = lScores[lDir];
+            //     }
+            // }
 
-            if(maxValue<=0) {
-                lastAction = -1;
-            } else if(lScores[FRONT]==maxValue) {
-                startForwardCM(30);
-                lastAction = FRONT;
-            } else if(lScores[RIGHT]==maxValue) {
-                startRotate(90);
-                lastAction = RIGHT;
-            } else if(lScores[LEFT]==maxValue) {
-                startRotate(-90);
-                lastAction = LEFT;
-            } else if(lScores[BACK]==maxValue) {
-                startRotate(-90);
-                lastAction = LEFT;
-            }
+            // if(maxValue<=0) {
+            //     lastAction = -1;
+            // } else if(lScores[FRONT]==maxValue) {
+            //     startForwardCM(30);
+            //     lastAction = FRONT;
+            // } else if(lScores[RIGHT]==maxValue) {
+            //     startRotate(90);
+            //     lastAction = RIGHT;
+            // } else if(lScores[LEFT]==maxValue) {
+            //     startRotate(-90);
+            //     lastAction = LEFT;
+            // } else if(lScores[BACK]==maxValue) {
+            //     startRotate(-90);
+            //     lastAction = LEFT;
+            // }
         }
     }
 
@@ -93,16 +93,16 @@ void navigationUpdateMap(int8_t action) {
     blackEscaping = false;
     switch(action) {
     case FRONT:
-        mapForward(false);
+        // mapForward(false);
         break;
     case LEFT:
-        mapRotate(-1);
+        // mapRotate(-1);
         break;
     case BACK:
-        mapRotate(-2);
+        // mapRotate(-2);
         break;
     case RIGHT:
-        mapRotate(1);
+        // mapRotate(1);
         break;
     }
 }

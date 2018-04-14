@@ -3,152 +3,79 @@
 
 
 #include <Arduino.h>
+#include <stdlib.h>
 #include "config.h"
 #include "analog.h"
 #include "light.h"
-#include "rgb.h"
 
-#include <stdlib.h>
+
+#define WALL 1
+#define NO_WALL 0
+
+#define ERR_MAP_INCON 0xFF00
 
 
 typedef struct Point {
-    int8_t x : 4;
-    int8_t y : 4;
+    short x;
+    short y;
 } Point;
 
-
 typedef struct Field {
-    struct Field *neighbors[4];
+    Point pos;
+    uint8_t floor;
 
-    int8_t x : 4;
-    int8_t y : 4;
+    uint8_t walls   : 4;
+    uint8_t visited : 1;
+    uint8_t black   : 1;
+    uint8_t silver  : 1;
+    uint8_t ramp    : 1;
 
-    /*
-     * 0 unvisited
-     * 1 white
-     * 2 black
-     * 3 silver
-     * 4 ramp
-     * 5 unused
-     * 6 unused
-     * 7 unused
-     */
-    int8_t type;
+    uint8_t score;
 
-    int8_t score;
-
-    struct Field *next;
+    struct Field* next;
 } Field;
 
 typedef struct Floor {
     uint8_t id;
 
-    Field *start;
-    Field *end;
+    struct Field* headField;
+    struct Field* tailField;
 
-    Field *lastField;
+    struct Field* lastVisitedField;
 
-    bool finished;
-
-    struct Floor *next;
+    struct Floor* next;
 } Floor;
 
-typedef struct AdjacentScores {
-    int8_t score[4];
-} AdjacentScores;
+typedef struct Map {
+    int heading : 2;
+    
+    struct Floor* headFloor;
+    struct Floor* tailFloor;
 
-typedef struct Ramp {
-    int8_t floor1;
-    Point field1;
+    struct Floor* currentFloor;
 
-    int8_t floor2;
-    Point field2;
+    struct Field* currentField;
+} Map;
 
-    struct Ramp *next;
-} Ramp;
+struct Map mapData;
+struct Map bkupMapData;
 
-typedef struct Victim {
-    int8_t dir;
-    int8_t floor;
-    Point field;
-
-    struct Victim *next;
-} Victim;
-
-
-uint8_t heading;
-
-Floor *startFloor;
-
-Floor *currentFloor;
-
-Field *currentField;
-
-Ramp *firstRamp;
-
-Victim *firstVictim;
-
-bool blockRampUp;
-
-bool blockRampDown;
-
-// BACKUP:
-
-uint8_t bkupHeading;
-
-Floor *bkupStartFloor;
-
-Floor *bkupCurrentFloor;
-
-Field *bkupCurrentField;
-
-Ramp *bkupFirstRamp;
-
-Victim *bkupFirstVictim;
-
-bool bkupBlockRampUp;
-
-bool bkupBlockRampDown;
-
-// FUNCTIONS:
 
 void mapInit();
 
-Field* mapCreateField(int8_t x, int8_t y, bool startField);
-
-uint8_t mapLocalToGlobalDirection(uint8_t local);
-
-Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir);
-
-Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir);
-
-Field* mapFindField(int8_t x, int8_t y);
-
-void mapRotate(int8_t amount);
-
-void mapForward(bool ramp);
-
-void mapFrontFieldBlack();
-
-void mapSetRamp();
-
-void mapFinishRamp();
-
-bool mapJustFinishedRamp();
-
-void mapSetVictim(int side, int rotOffset, bool front);
-
-bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front);
-
 void mapUpdate();
 
-AdjacentScores mapGetAdjacentScores();
+Field* mapCreateField(Point pos, bool startField);
 
-void mapMakeBackup();
+Point mapGetAdjacentPositionGlobal(Point of, uint8_t dir);
 
-void mapRestoreBackup();
+Field* mapGetAdjacentFieldGlobal(Point of, uint8_t dir);
 
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Victim *srcStartVictim, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp, Victim **destStartVictim);
+Field* mapFindField(Point at);
+
+void mapSetWall(Field* field, uint8_t dir, uint8_t state);
+
+uint8_t mapGetWall(Field* field, uint8_t dir);
 
 void mapSender();
 

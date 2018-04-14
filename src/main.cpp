@@ -110,28 +110,28 @@ void loop() {
     melexisInterrupt();
     TIMER_START;
 
-    if(toggleswitch[0].value) {
-        if(toggleswitch[1].value) {
-            lastState = false;
-            victimRecognition();
-            if(enableNavigation)
-                navigate();
-        } else {
-            motorBrake();
-            if(!lastState) {
-                mapRestoreBackup();
-                encoderReset();
-                rotateState = -1;
-                forwardState = -1;
-                targetEncoderValue = 0;
-                lastAction = 5;
-            }
-            lastState = true;
-        }
-    } else {
-        rgbOff(0);
-        motorBrake();
-    }
+    // if(toggleswitch[0].value) {
+    //     if(toggleswitch[1].value) {
+    //         lastState = false;
+    //         victimRecognition();
+    //         if(enableNavigation)
+    //             navigate();
+    //     } else {
+    //         motorBrake();
+    //         if(!lastState) {
+    //             // mapRestoreBackup();
+    //             encoderReset();
+    //             rotateState = -1;
+    //             forwardState = -1;
+    //             targetEncoderValue = 0;
+    //             lastAction = 5;
+    //         }
+    //         lastState = true;
+    //     }
+    // } else {
+    //     rgbOff(0);
+    //     motorBrake();
+    // }
 
     if(victimSetKitdropper == 1) {
         servoRight();
