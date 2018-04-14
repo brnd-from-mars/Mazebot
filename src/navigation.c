@@ -41,10 +41,10 @@ void navigate() {
         }
 
         if(rotateState==-1 && lastRotateState!=rotateState)
-            // navigationUpdateMap(lastAction);
+            navigationUpdateMap();
 
         if(forwardState==-1 && lastForwardState!=forwardState)
-            // navigationUpdateMap(lastAction);
+            navigationUpdateMap();
 
         lastRotateState = rotateState;
         lastForwardState = forwardState;
@@ -54,55 +54,47 @@ void navigate() {
         else if(forwardState!=-1)
             processForward();
         else {
-            // AdjacentScores gScores = mapGetAdjacentScores();
-            // int8_t lScores[4];
+            
+            mapEvaluateScores();
 
-            // for(uint8_t dir=0; dir<4; dir++) {
-                // lScores[(dir-heading+3)%4] = gScores.score[dir];
-            // }
+            if(lastScoreInfo.max > 0 && lastScoreInfo.valid) {
 
-            // int8_t maxValue = -2;
-            // for(uint8_t lDir=0; lDir<4; lDir++)  {
-            //     if(lScores[lDir]>=maxValue) {
-            //         maxValue = lScores[lDir];
-            //     }
-            // }
-
-            // if(maxValue<=0) {
-            //     lastAction = -1;
-            // } else if(lScores[FRONT]==maxValue) {
-            //     startForwardCM(30);
-            //     lastAction = FRONT;
-            // } else if(lScores[RIGHT]==maxValue) {
-            //     startRotate(90);
-            //     lastAction = RIGHT;
-            // } else if(lScores[LEFT]==maxValue) {
-            //     startRotate(-90);
-            //     lastAction = LEFT;
-            // } else if(lScores[BACK]==maxValue) {
-            //     startRotate(-90);
-            //     lastAction = LEFT;
-            // }
+                if(lastScoreInfo.adjacentScores[FRONT] == lastScoreInfo.max) {
+                    startForwardCM(30);
+                    lastAction = FRONT;
+                } else if(lastScoreInfo.adjacentScores[RIGHT] == lastScoreInfo.max) {
+                    startRotate(90);
+                    lastAction = RIGHT;
+                } else if(lastScoreInfo.adjacentScores[LEFT] == lastScoreInfo.max) {
+                    startRotate(-90);
+                    lastAction = LEFT;
+                } else if(lastScoreInfo.adjacentScores[BACK] == lastScoreInfo.max) {
+                    startRotate(90);
+                    lastAction = RIGHT;
+                }
+            } else {
+                lastAction = -1;
+            }
         }
     }
 
     lastRampState = rampState;
 }
 
-void navigationUpdateMap(int8_t action) {
+void navigationUpdateMap() {
     blackEscaping = false;
-    switch(action) {
+    switch(lastAction) {
     case FRONT:
-        // mapForward(false);
+        mapForward();
         break;
     case LEFT:
-        // mapRotate(-1);
+        mapRotate(-1);
         break;
     case BACK:
-        // mapRotate(-2);
+        mapRotate(-2);
         break;
     case RIGHT:
-        // mapRotate(1);
+        mapRotate(1);
         break;
     }
 }

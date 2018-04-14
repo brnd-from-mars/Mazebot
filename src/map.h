@@ -30,52 +30,70 @@ typedef struct Field {
     uint8_t silver  : 1;
     uint8_t ramp    : 1;
 
-    uint8_t score;
-
-    struct Field* next;
+    short score;
 } Field;
 
 typedef struct Floor {
     uint8_t id;
 
-    struct Field* headField;
-    struct Field* tailField;
+    struct Field* fieldArray;
+    short fieldCount;
 
+    struct Field* startField;
     struct Field* lastVisitedField;
 
     struct Floor* next;
 } Floor;
 
 typedef struct Map {
-    int heading : 2;
+    unsigned int heading : 2;
     
     struct Floor* headFloor;
     struct Floor* tailFloor;
 
     struct Floor* currentFloor;
-
     struct Field* currentField;
 } Map;
 
 struct Map mapData;
 struct Map bkupMapData;
 
+struct ScoreInfo {
+    bool valid;
+    short adjacentScores[4];
+    short max;
+} lastScoreInfo;
+
 
 void mapInit();
 
 void mapUpdate();
 
-Field* mapCreateField(Point pos, bool startField);
+Field* mapCreateField(Point pos);
 
-Point mapGetAdjacentPositionGlobal(Point of, uint8_t dir);
+short mapLocalToGlobalDirection(short dir);
 
-Field* mapGetAdjacentFieldGlobal(Point of, uint8_t dir);
+short mapGlobalToLocalDirection(short dir);
+
+Point mapGetAdjacentPositionGlobal(Point of, short dir);
+
+Field* mapGetAdjacentFieldGlobal(Point of, short dir);
 
 Field* mapFindField(Point at);
 
-void mapSetWall(Field* field, uint8_t dir, uint8_t state);
+void mapSetWall(Field* field, short dir, uint8_t state);
 
-uint8_t mapGetWall(Field* field, uint8_t dir);
+uint8_t mapGetWall(Field* field, short dir);
+
+void mapRotate(short amount);
+
+void mapForward();
+
+bool mapOnStartField();
+
+bool mapSetStartScores();
+
+void mapEvaluateScores();
 
 void mapSender();
 
