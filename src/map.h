@@ -7,6 +7,7 @@
 #include "config.h"
 #include "analog.h"
 #include "light.h"
+#include "rgb.h"
 
 
 #define WALL 1
@@ -89,11 +90,15 @@ void mapRotate(short amount);
 
 void mapForward();
 
+void mapSetBlackInFront();
+
 bool mapOnStartField();
 
 bool mapSetStartScores();
 
 void mapEvaluateScores();
+
+void mapCopy(Map* source, Map* destination);
 
 void mapSender();
 

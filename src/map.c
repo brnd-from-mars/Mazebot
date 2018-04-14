@@ -51,8 +51,15 @@ void mapUpdate() {
         }
     }
 
-    lastScoreInfo.valid = false;
+    if(isSilver ||
+      mapData.currentField->silver == 1 ||
+      mapData.currentField == mapData.currentFloor->startField) {
+        mapData.currentField->silver = 1;
+        mapCopy(&mapData, &bkupMapData);
+    }
+
     mapSender();
+    lastScoreInfo.valid = false;
 }
 
 Field* mapCreateField(Point pos) {
@@ -119,7 +126,8 @@ short mapGlobalToLocalDirection(short glob) {
 
 Point mapGetAdjacentPositionGlobal(Point of, short dir) {
 
-    Point rP = {of.x+(short)(abs(dir-2))-1, of.y+(short)(abs(dir-1))-1};
+    // plot it for 0?dir?3 and you will get the idea
+    Point rP = {of.x+(abs(dir-2))-1, of.y+(abs(dir-1))-1};
     return rP;
 }
 
@@ -172,11 +180,22 @@ void mapRotate(short amount) {
 
 void mapForward() {
 
-    Field* new = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
+    Field* front = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
 
-    mapData.currentField = new;
+    mapData.currentField = front;
     mapData.currentFloor->lastVisitedField = mapData.currentField;
 
+    mapUpdate();
+}
+
+void mapSetBlackInFront() {
+
+    Field* front = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
+
+    front->visited = 1;
+    front->black = 1;
+    front->score = -1;
+    
     mapUpdate();
 }
 
@@ -268,24 +287,103 @@ void mapEvaluateScores() {
     lastScoreInfo.valid = true;
 }
 
+void mapCopy(Map* source, Map* destination) {
+
+    rgbBlink(64, 52, 130, 0, 3000);
+
+    destination->heading = source->heading;
+
+    Floor* destinationFloorPtr = destination->headFloor;
+    Floor* sourceFloorPtr = source->headFloor;
+
+    while(destinationFloorPtr != NULL) {
+
+        Floor* next = destinationFloorPtr->next;
+        free(destinationFloorPtr->fieldArray);
+        free(destinationFloorPtr);
+        destinationFloorPtr = next;
+
+    }
+
+    while(sourceFloorPtr != NULL) {
+
+        if(destinationFloorPtr == NULL)
+            destinationFloorPtr = malloc(sizeof(Floor));
+        else {
+            destinationFloorPtr->next = malloc(sizeof(Floor));
+            destinationFloorPtr = destinationFloorPtr->next;
+        }
+
+        destinationFloorPtr->id         = sourceFloorPtr->id;
+        destinationFloorPtr->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
+        destinationFloorPtr->fieldCount = sourceFloorPtr->fieldCount;
+        destinationFloorPtr->next       = NULL;
+
+        Field* destinationFieldPtr = NULL;
+        Field* sourceFieldPtr      = NULL;
+
+        for(short i = 0; i < destinationFloorPtr->fieldCount; i++) {
+
+            destinationFieldPtr = &destinationFloorPtr->fieldArray[i];
+            sourceFieldPtr      = &sourceFloorPtr->fieldArray[i];
+
+            destinationFieldPtr->pos     = sourceFieldPtr->pos;
+            destinationFieldPtr->floor   = sourceFieldPtr->floor;
+            destinationFieldPtr->walls   = sourceFieldPtr->walls;
+            destinationFieldPtr->visited = sourceFieldPtr->visited;
+            destinationFieldPtr->black   = sourceFieldPtr->black;
+            destinationFieldPtr->silver  = sourceFieldPtr->silver;
+            destinationFieldPtr->ramp    = sourceFieldPtr->ramp;
+            destinationFieldPtr->score   = sourceFieldPtr->score;
+
+            if(sourceFloorPtr->startField == sourceFieldPtr)
+                destinationFloorPtr->startField = destinationFieldPtr;
+            if(sourceFloorPtr->lastVisitedField == destinationFieldPtr)
+                destinationFloorPtr->lastVisitedField = destinationFieldPtr;
+            if(source->currentField == sourceFieldPtr)
+                destination->currentField = destinationFieldPtr;
+        }
+
+        if(source->headFloor == sourceFloorPtr)
+            destination->headFloor = destinationFloorPtr;
+        if(source->tailFloor == sourceFloorPtr);
+            destination->tailFloor = destinationFloorPtr;
+        if(source->currentFloor == sourceFloorPtr)
+            destination->currentFloor = destinationFloorPtr;
+
+        sourceFloorPtr = sourceFloorPtr->next;
+    }
+}
+
 void mapSender() {
 
     Field* fieldPtr = NULL;
 
 
     serialPrintNL();
-    serialPrintInt(mapData.currentField->pos.x);
-    serialPrintInt(mapData.currentField->pos.y);
-    serialPrintInt(mapData.heading);
+    serialPrintInt(bkupMapData.currentField->pos.x);
+    serialPrintInt(bkupMapData.currentField->pos.y);
+    serialPrintInt(bkupMapData.heading);
     serialPrintNL();
 
-    for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+    for(short i = 0; i < bkupMapData.currentFloor->fieldCount; i++) {
 
-        fieldPtr = &mapData.currentFloor->fieldArray[i];
+        fieldPtr = &bkupMapData.currentFloor->fieldArray[i];
 
         serialPrintInt(fieldPtr->pos.x);
         serialPrintInt(fieldPtr->pos.y);
-        serialPrintInt(fieldPtr->visited ? 1 : 0);
+
+        if(fieldPtr->ramp == 1)
+            serialPrintInt(4);
+        else if(fieldPtr->silver == 1)
+            serialPrintInt(3);
+        else if(fieldPtr->black == 1)
+            serialPrintInt(2);
+        else if(fieldPtr->visited == 1)
+            serialPrintInt(1);
+        else
+            serialPrintInt(0);
+
         serialPrintInt(fieldPtr->score);
 
         for(int dir = 0; dir < 4; dir++)

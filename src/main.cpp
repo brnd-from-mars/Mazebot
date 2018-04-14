@@ -133,6 +133,8 @@ void loop() {
         motorBrake();
     }
 
+    rgbUpdate();
+
     if(victimSetKitdropper == 1) {
         servoRight();
         victimSetKitdropper = 0;
