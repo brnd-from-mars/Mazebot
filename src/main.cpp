@@ -70,7 +70,7 @@ void servoRight() {
     TIMER_START;
 }
 
-bool lastState;
+bool lastMapRestoreBackupSwitchState;
 
 void setup() {
     Serial.begin(38400);
@@ -101,7 +101,7 @@ void setup() {
 
     Serial3.println("START");
 
-    lastState = false;
+    lastMapRestoreBackupSwitchState = false;
 }
 
 void loop() {
@@ -110,27 +110,38 @@ void loop() {
     melexisInterrupt();
     TIMER_START;
 
-    if(toggleswitch[0].value) {
-        if(toggleswitch[1].value) {
-            lastState = false;
+    if(toggleswitch[1].value) {
+
+        if(toggleswitch[0].value) {
+
             victimRecognition();
-            if(enableNavigation)
+            if(enableNavigation) {
                 navigate();
-        } else {
-            motorBrake();
-            if(!lastState) {
-                // mapRestoreBackup();
-                encoderReset();
-                rotateState = -1;
-                forwardState = -1;
-                targetEncoderValue = 0;
-                lastAction = 5;
             }
-            lastState = true;
+
+        } else {
+
+            motorBrake();
+            rgbSet(64, 32, 0, 0);
+
         }
+        lastMapRestoreBackupSwitchState = true;
+
     } else {
-        rgbOff(0);
+
+        if(lastMapRestoreBackupSwitchState) {
+
+            mapRestoreFromBackup();
+            encoderReset();
+            driveSMInit();
+            lastAction = NAVIGATION_ACTION_RESTORE_BKUP;
+
+        }
+
         motorBrake();
+        rgbSet(64, 32, 0, 0);
+        lastMapRestoreBackupSwitchState = false;
+
     }
 
     rgbUpdate();

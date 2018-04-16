@@ -126,7 +126,7 @@ short mapGlobalToLocalDirection(short glob) {
 
 Point mapGetAdjacentPositionGlobal(Point of, short dir) {
 
-    // plot it for 0?dir?3 and you will get the idea
+    // plot it for 0<=dir<=3 and you will get the idea
     Point rP = {of.x+(abs(dir-2))-1, of.y+(abs(dir-1))-1};
     return rP;
 }
@@ -213,9 +213,9 @@ bool mapSetStartScores() {
 
         fieldPtr = &mapData.currentFloor->fieldArray[i];
 
-        if(fieldPtr->black == 1)
+        if(fieldPtr->black)
             fieldPtr->score = -1;
-        else if(fieldPtr->visited == 1)
+        else if(fieldPtr->visited)
             fieldPtr->score = 0;
         else {
             fieldPtr->score = 255;
@@ -289,7 +289,7 @@ void mapEvaluateScores() {
 
 void mapCopy(Map* source, Map* destination) {
 
-    rgbBlink(64, 52, 130, 0, 3000);
+    rgbBlink(64, 52, 130, 0, 300);
 
     destination->heading = source->heading;
 
@@ -355,6 +355,12 @@ void mapCopy(Map* source, Map* destination) {
     }
 }
 
+void mapRestoreFromBackup() {
+
+    mapCopy(&bkupMapData, &mapData);
+    mapSender();
+}
+
 void mapSender() {
 
     Field* fieldPtr = NULL;
@@ -373,13 +379,13 @@ void mapSender() {
         serialPrintInt(fieldPtr->pos.x);
         serialPrintInt(fieldPtr->pos.y);
 
-        if(fieldPtr->ramp == 1)
+        if(fieldPtr->ramp)
             serialPrintInt(4);
-        else if(fieldPtr->silver == 1)
+        else if(fieldPtr->silver)
             serialPrintInt(3);
-        else if(fieldPtr->black == 1)
+        else if(fieldPtr->black)
             serialPrintInt(2);
-        else if(fieldPtr->visited == 1)
+        else if(fieldPtr->visited)
             serialPrintInt(1);
         else
             serialPrintInt(0);

@@ -100,6 +100,8 @@ void mapEvaluateScores();
 
 void mapCopy(Map* source, Map* destination);
 
+void mapRestoreFromBackup();
+
 void mapSender();
 
 
