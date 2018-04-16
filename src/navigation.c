@@ -24,20 +24,20 @@ void navigate() {
         drive(160, 0.5, 0.02, 1.0);
         rgbSet(32, 32, 32, 0);
         if(lastRampState!=1) {
-            // mapSetRamp();
+            mapSetRamp();
         }
 
     } else if(rampState == -1) {
         drive(80, 0.5, 0.02, 1.0);
         rgbSet(32, 32, 32, 0);
         if(lastRampState != -1) {
-            // mapSetRamp();
+            mapSetRamp();
         }
 
     } else {
 
         if(lastRampState != 0) {
-            // mapFinishRamp();
+            mapFinishRamp();
             driveReset();
         }
 
@@ -99,7 +99,7 @@ void navigationUpdateMap() {
         mapRotate(-1);
         break;
     case NAVIGATION_ACTION_DRIVE_FWD:
-        mapForward();
+        mapForward(true);
         break;
     case NAVIGATION_ACTION_ESC_BLACK:
         mapSetBlackInFront();

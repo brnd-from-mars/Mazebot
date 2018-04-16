@@ -7,20 +7,25 @@ void mapInit() {
     mapData.headFloor = malloc(sizeof(Floor));
     mapData.tailFloor = mapData.headFloor;
     mapData.currentFloor = mapData.headFloor;
-    mapData.currentFloor->id = 0;
-    mapData.currentFloor->next = NULL;
 
+    mapData.currentFloor->id = 0;
     mapData.currentFloor->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
     mapData.currentFloor->fieldCount = 0;
+    mapData.currentFloor->next = NULL;
 
     mapCreateField((Point) {0, 0});
     mapData.currentField = mapData.currentFloor->startField;
+
+    mapData.headRamp = NULL;
+    mapData.tailRamp = NULL;
 
     bkupMapData.heading = NORTH;
     bkupMapData.headFloor = NULL;
     bkupMapData.tailFloor = NULL;
     bkupMapData.currentFloor = NULL;
     bkupMapData.currentField = NULL;
+    bkupMapData.headRamp = NULL;
+    bkupMapData.tailRamp = NULL;
 
     lastScoreInfo.valid = false;
 
@@ -112,6 +117,46 @@ Field* mapCreateField(Point pos) {
     return fieldPtr;
 }
 
+Floor* mapCreateFloor() {
+
+    mapData.tailFloor->next = malloc(sizeof(Floor));
+    mapData.tailFloor->next->id = mapData.tailFloor->id + 1;
+    mapData.tailFloor->next->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
+    mapData.tailFloor->next->fieldCount = 0;
+    mapData.tailFloor->next->next = NULL;
+    
+    mapData.tailFloor = mapData.tailFloor->next;
+    mapData.currentFloor = mapData.tailFloor;
+
+    mapCreateField((Point) {0, 0});
+
+    return mapData.tailFloor;
+}
+
+Ramp* mapCreateRamp() {
+
+    uint8_t fl1 = mapData.currentFloor->id;
+    Point fd1 = mapData.currentField->pos;
+
+    mapCreateFloor();
+
+    if(mapData.headRamp == NULL) {
+        mapData.headRamp = malloc(sizeof(Ramp));
+        mapData.tailRamp = mapData.headRamp;
+    } else {
+        mapData.tailRamp->next = malloc(sizeof(Ramp));
+        mapData.tailRamp = mapData.tailRamp->next;
+    }
+
+    mapData.tailRamp->floor1 = fl1;
+    mapData.tailRamp->floor2 = mapData.currentFloor->id;
+    mapData.tailRamp->field1 = fd1;
+    mapData.tailRamp->field2 = mapData.currentField->pos;
+    mapData.tailRamp->next = NULL;
+
+    return mapData.tailRamp;
+}
+
 short mapLocalToGlobalDirection(short loc) {
 
     short glob = (loc + mapData.heading + 1) % 4;
@@ -152,6 +197,38 @@ Field* mapFindField(Point at) {
     return NULL;
 }
 
+Floor* mapFindFloor(uint8_t id) {
+
+    Floor* floorPtr = mapData.headFloor;
+
+    while(floorPtr != NULL) {
+
+        if(floorPtr->id == id)
+            return floorPtr;
+
+        floorPtr = floorPtr->next;
+    }
+
+    return NULL;
+}
+
+Ramp* mapFindRamp(Point end) {
+
+    Ramp* rampPtr = mapData.headRamp;
+
+    while(rampPtr != NULL) {
+
+        if((rampPtr->field1.x == end.x) && (rampPtr->field1.y == end.y))
+            return rampPtr;
+        if((rampPtr->field2.x == end.x) && (rampPtr->field2.y == end.y))
+            return rampPtr;
+        
+        rampPtr = rampPtr->next;
+    }
+
+    return NULL;
+}
+
 void mapSetWall(Field* field, short dir, uint8_t state) {
 
     if(field == NULL)
@@ -178,14 +255,16 @@ void mapRotate(short amount) {
     mapUpdate();
 }
 
-void mapForward() {
+void mapForward(bool update) {
 
     Field* front = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
 
     mapData.currentField = front;
     mapData.currentFloor->lastVisitedField = mapData.currentField;
 
-    mapUpdate();
+    if(update) {
+        mapUpdate();
+    }
 }
 
 void mapSetBlackInFront() {
@@ -197,6 +276,49 @@ void mapSetBlackInFront() {
     front->score = -1;
     
     mapUpdate();
+}
+
+void mapChangeFloor(Ramp* ramp) {
+
+    uint8_t newID = ramp->floor1;
+    if(newID == mapData.currentFloor->id) {
+        newID = ramp->floor2;
+    }
+
+    mapData.currentFloor = mapFindFloor(newID);
+    mapData.currentField = mapData.currentFloor->lastVisitedField;
+}
+
+void mapSetRamp() {
+
+    mapForward(false);
+
+    Ramp* currentRamp = NULL;
+
+    if(mapData.currentField->ramp) {
+
+        currentRamp = mapFindRamp(mapData.currentField->pos);
+
+        if(currentRamp != NULL) {
+            mapChangeFloor(currentRamp);
+        } else { // should never happen
+            currentRamp = mapCreateRamp();
+        }
+
+    } else {
+        mapData.currentField->ramp = 1;
+        currentRamp = mapCreateRamp();
+    }
+
+    mapData.currentField->ramp = 1;
+
+    // map is now pointing to final floor to the last tile on the ramp
+}
+
+void mapFinishRamp() {
+
+    mapForward(true);
+    mapSender();
 }
 
 bool mapOnStartField() {
@@ -302,7 +424,6 @@ void mapCopy(Map* source, Map* destination) {
         free(destinationFloorPtr->fieldArray);
         free(destinationFloorPtr);
         destinationFloorPtr = next;
-
     }
 
     while(sourceFloorPtr != NULL) {
@@ -352,6 +473,31 @@ void mapCopy(Map* source, Map* destination) {
             destination->currentFloor = destinationFloorPtr;
 
         sourceFloorPtr = sourceFloorPtr->next;
+    }
+
+    Ramp* destinationRampPtr = destination->headRamp;
+    Ramp* sourceRampPtr = source->headRamp;
+
+    while(destinationRampPtr != NULL) {
+
+        Ramp* next = destinationRampPtr->next;
+        free(destinationRampPtr);
+        destinationRampPtr = next;
+    }
+
+    while(sourceRampPtr != NULL) {
+
+        if(destinationRampPtr == NULL)
+            destinationRampPtr = malloc(sizeof(Ramp));
+        else {
+            destinationRampPtr->next = malloc(sizeof(Ramp));
+            destinationRampPtr = destinationRampPtr->next;
+        }
+
+        destinationRampPtr->floor1 = sourceRampPtr->floor1;
+        destinationRampPtr->floor2 = sourceRampPtr->floor2;
+        destinationRampPtr->field1 = sourceRampPtr->field1;
+        destinationRampPtr->field2 = sourceRampPtr->field2;
     }
 }
 

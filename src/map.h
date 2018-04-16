@@ -46,6 +46,16 @@ typedef struct Floor {
     struct Floor* next;
 } Floor;
 
+typedef struct Ramp {
+    uint8_t floor1;
+    uint8_t floor2;
+
+    struct Point field1;
+    struct Point field2;
+
+    struct Ramp* next;
+} Ramp;
+
 typedef struct Map {
     unsigned int heading : 2;
     
@@ -54,6 +64,9 @@ typedef struct Map {
 
     struct Floor* currentFloor;
     struct Field* currentField;
+
+    struct Ramp* headRamp;
+    struct Ramp* tailRamp;
 } Map;
 
 struct Map mapData;
@@ -72,6 +85,10 @@ void mapUpdate();
 
 Field* mapCreateField(Point pos);
 
+Floor* mapCreateFloor();
+
+Ramp* mapCreateRamp();
+
 short mapLocalToGlobalDirection(short dir);
 
 short mapGlobalToLocalDirection(short dir);
@@ -82,15 +99,25 @@ Field* mapGetAdjacentFieldGlobal(Point of, short dir);
 
 Field* mapFindField(Point at);
 
+Floor* mapFindFloor(uint8_t id);
+
+Ramp* mapFindRamp(Point end);
+
 void mapSetWall(Field* field, short dir, uint8_t state);
 
 uint8_t mapGetWall(Field* field, short dir);
 
 void mapRotate(short amount);
 
-void mapForward();
+void mapForward(bool update);
 
 void mapSetBlackInFront();
+
+void mapChangeFloor(Ramp* ramp);
+
+void mapSetRamp();
+
+void mapFinishRamp();
 
 bool mapOnStartField();
 
