@@ -6,8 +6,8 @@ void melexisInit() {
     pinMode(SCL, INPUT_PULLUP);
     i2c_init();
 
-    melexis[0].address = 0xA6;
-    melexis[1].address = 0xA0;
+    melexis[0].address = 0xA0;
+    melexis[1].address = 0xA6;
 
     nextMelexis = 0;
 }

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "analog.h"
 #include "drive.h"
 #include "encoder.h"
 #include "motor.h"
@@ -13,6 +14,8 @@ int8_t rotateState;
 int8_t forwardState;
 
 int targetEncoderValue;
+
+long cameraStart;
 
 void driveSMInit();
 

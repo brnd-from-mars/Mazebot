@@ -17,7 +17,7 @@ void victimRecognition() {
             for(uint8_t i=0; i<2; i++) {
                 if(melexis[i].value >= VICTIM_TEMPERATURE) {
                     victimPosition = i;
-                    victimState = 1;
+                    victimState = 0;
                     enableNavigation = false;
                 }
             }
@@ -25,7 +25,9 @@ void victimRecognition() {
         // verify recognized victim
         case 0:
             TIMER_STOP;
-            if(melexisVerify(victimPosition) >= VICTIM_TEMPERATURE)
+            motorBrake();
+            short dir = ((victimPosition == 0) ? RIGHT : LEFT);
+            if(mapGetVictimType(dir) == -1)
                 victimState = 1;
             else {
                 enableNavigation = true;
@@ -36,7 +38,7 @@ void victimRecognition() {
             break;
         // start victim handling
         case 1:
-            motorBrake();
+            mapCreateVictim(((victimPosition == 0) ? RIGHT : LEFT), 3);
             rgbSet(128, 0, 0, 0);
             if(victimPosition == 0)
                 victimSetKitdropper = 1;

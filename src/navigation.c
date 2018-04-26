@@ -21,25 +21,26 @@ void navigate() {
     }
 
     if(rampState == 1) {
-        drive(160, 0.5, 0.02, 1.0);
+        drive(140, 0.5, 0.02, 0.0);
         rgbSet(32, 32, 32, 0);
-        if(lastRampState!=1) {
+        if(lastRampState != 1) {
             mapSetRamp();
         }
 
     } else if(rampState == -1) {
-        drive(80, 0.5, 0.02, 1.0);
+        drive(100, 0.5, 0.02, 0.0);
         rgbSet(32, 32, 32, 0);
         if(lastRampState != -1) {
             mapSetRamp();
         }
 
-    } else {
+    } else if(lastRampState != 0) {
+        mapFinishRamp();
+        motorBrake();
+        driveReset();
+        lastAction = NAVIGATION_ACTION_DRIVE_RAMP;
 
-        if(lastRampState != 0) {
-            mapFinishRamp();
-            driveReset();
-        }
+    } else {
 
         if(rotateState == -1 && lastRotateState != rotateState)
             navigationUpdateMap();
@@ -77,6 +78,13 @@ void navigate() {
                 }
             } else {
                 lastAction = NAVIGATION_ACTION_NOTHING;
+                // serialPrintInt(255);
+                // serialPrintNL();
+                // mapRestoreFromBackup();
+                // mapUpdate();
+                // mapSender();
+                // encoderReset();
+                // driveSMInit();
             }
         }
     }
@@ -103,6 +111,8 @@ void navigationUpdateMap() {
         break;
     case NAVIGATION_ACTION_ESC_BLACK:
         mapSetBlackInFront();
+        break;
+    case NAVIGATION_ACTION_DRIVE_RAMP:
         break;
     }
 }

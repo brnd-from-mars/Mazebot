@@ -18,6 +18,8 @@ void mapInit() {
 
     mapData.headRamp = NULL;
     mapData.tailRamp = NULL;
+    mapData.headVictim = NULL;
+    mapData.tailVictim = NULL;
 
     bkupMapData.heading = NORTH;
     bkupMapData.headFloor = NULL;
@@ -26,10 +28,13 @@ void mapInit() {
     bkupMapData.currentField = NULL;
     bkupMapData.headRamp = NULL;
     bkupMapData.tailRamp = NULL;
+    bkupMapData.headVictim = NULL;
+    bkupMapData.tailVictim = NULL;
 
-    lastScoreInfo.valid = false;
+    lastScoreInfo.valid      = false;
 
     mapUpdate();
+    //mapCopy(&mapData, &bkupMapData); // just for testing
 }
 
 void mapUpdate() {
@@ -41,10 +46,12 @@ void mapUpdate() {
     for(short dir = 0; dir < 4; dir++) {
 
         if((bool) (walls & (1 << dir))) {
+
             mapSetWall(mapData.currentField, dir, WALL);
             mapSetWall(mapGetAdjacentFieldGlobal(mapData.currentField->pos, dir), (dir+2)%4, WALL);
 
         } else {
+
             Field* connectedNeighbour = mapGetAdjacentFieldGlobal(mapData.currentField->pos, dir);
             if(connectedNeighbour == NULL) {
 
@@ -124,11 +131,13 @@ Floor* mapCreateFloor() {
     mapData.tailFloor->next->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
     mapData.tailFloor->next->fieldCount = 0;
     mapData.tailFloor->next->next = NULL;
-    
+
     mapData.tailFloor = mapData.tailFloor->next;
     mapData.currentFloor = mapData.tailFloor;
 
-    mapCreateField((Point) {0, 0});
+    mapData.currentField = mapCreateField((Point) {0, 0});
+    mapData.currentField->ramp = 1;
+    mapData.currentField->visited = 1;
 
     return mapData.tailFloor;
 }
@@ -155,6 +164,38 @@ Ramp* mapCreateRamp() {
     mapData.tailRamp->next = NULL;
 
     return mapData.tailRamp;
+}
+
+Victim* mapCreateVictim(short localDir, uint8_t type) {
+
+    short global = mapLocalToGlobalDirection(localDir);
+
+    Point field = mapData.currentField->pos;
+
+    if(getForwardProcess() == 1) {
+        field = mapGetAdjacentPositionGlobal(field, mapData.heading);
+    } else {
+        global += getRotationProcess();
+        global = global % 4;
+        if(global < 0)
+            global += 4;
+    }
+
+    if(mapData.headVictim == NULL) {
+        mapData.headVictim = malloc(sizeof(Victim));
+        mapData.tailVictim = mapData.headVictim;
+    } else {
+        mapData.tailVictim->next = malloc(sizeof(Victim));
+        mapData.tailVictim = mapData.tailVictim->next;
+    }
+
+    mapData.tailVictim->next = NULL;
+
+    mapData.tailVictim->floor = mapData.currentFloor->id;
+    mapData.tailVictim->field = field;
+    mapData.tailVictim->direction = global;
+
+    return mapData.tailVictim;
 }
 
 short mapLocalToGlobalDirection(short loc) {
@@ -293,6 +334,8 @@ void mapSetRamp() {
 
     mapForward(false);
 
+    mapData.currentField->visited = 1;
+
     Ramp* currentRamp = NULL;
 
     if(mapData.currentField->ramp) {
@@ -310,15 +353,60 @@ void mapSetRamp() {
         currentRamp = mapCreateRamp();
     }
 
-    mapData.currentField->ramp = 1;
-
     // map is now pointing to final floor to the last tile on the ramp
+
+    serialPrintNL();
+    serialPrintInt(255);
+    serialPrintNL();
+    mapSender();
 }
 
 void mapFinishRamp() {
 
+    if(mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading) == NULL) {
+        Point pos = mapGetAdjacentPositionGlobal(mapData.currentField->pos, mapData.heading);
+        mapCreateField(pos);
+    }
+
     mapForward(true);
-    mapSender();
+}
+
+int8_t mapGetVictimType(short dir) {
+
+    Victim* victimPtr = mapData.headVictim;
+
+    short global = mapLocalToGlobalDirection(dir);
+
+    Point field = mapData.currentField->pos;
+
+    if(getForwardProcess() == 1) {
+        field = mapGetAdjacentPositionGlobal(field, mapData.heading);
+    } else {
+        global += getRotationProcess();
+        global = global % 4;
+        if(global < 0)
+            global += 4;
+    }
+
+    while(victimPtr != NULL) {
+
+        serialPrintInt(50);
+
+        if(victimPtr->direction == global
+          && victimPtr->floor == mapData.currentField->floor
+          && victimPtr->field.x == field.x
+          && victimPtr->field.y == field.y) {
+            
+            serialPrintInt(victimPtr->type);
+            serialPrintNL();
+
+            return victimPtr->type;
+        }
+
+        victimPtr = victimPtr->next;
+    }
+
+    return -1;
 }
 
 bool mapOnStartField() {
@@ -371,7 +459,7 @@ void mapEvaluateScores() {
 
                 fieldPtr = &mapData.currentFloor->fieldArray[i];
 
-                if(fieldPtr->score == 0) {
+                if(fieldPtr->score == 0 && !fieldPtr->ramp) {
                     for(short dir = 0; dir < 4; dir++) {
                         if(mapGetWall(fieldPtr, dir) == NO_WALL) {
                             Field* neighbour = mapGetAdjacentFieldGlobal(fieldPtr->pos, dir);
@@ -498,12 +586,43 @@ void mapCopy(Map* source, Map* destination) {
         destinationRampPtr->floor2 = sourceRampPtr->floor2;
         destinationRampPtr->field1 = sourceRampPtr->field1;
         destinationRampPtr->field2 = sourceRampPtr->field2;
+
+        sourceRampPtr = sourceRampPtr->next;
+    }
+
+    Victim* destinationVictimPtr = destination->headVictim;
+    Victim* sourceVictimPtr = source->headVictim;
+
+    while(destinationVictimPtr != NULL) {
+
+        Victim* next = destinationVictimPtr->next;
+        free(destinationVictimPtr);
+        destinationVictimPtr = next;
+    }
+
+    while(sourceVictimPtr != NULL) {
+
+        if(destinationVictimPtr == NULL)
+            destinationVictimPtr = malloc(sizeof(Victim));
+        else {
+            destinationVictimPtr->next = malloc(sizeof(Victim));
+            destinationVictimPtr = destinationVictimPtr->next;
+        }
+
+        destinationVictimPtr->floor     = sourceVictimPtr->floor;
+        destinationVictimPtr->field     = sourceVictimPtr->field;
+        destinationVictimPtr->direction = sourceVictimPtr->direction;
+        destinationVictimPtr->type      = sourceVictimPtr->type;
+
+        sourceVictimPtr = sourceVictimPtr->next;
     }
 }
 
 void mapRestoreFromBackup() {
 
     mapCopy(&bkupMapData, &mapData);
+    serialPrintInt(COM_MAP_RESET);
+    serialPrintNL();
     mapSender();
 }
 
@@ -511,16 +630,21 @@ void mapSender() {
 
     Field* fieldPtr = NULL;
 
-
-    serialPrintNL();
-    serialPrintInt(bkupMapData.currentField->pos.x);
-    serialPrintInt(bkupMapData.currentField->pos.y);
-    serialPrintInt(bkupMapData.heading);
+    serialPrintInt(COM_MAP_POSITION);
     serialPrintNL();
 
-    for(short i = 0; i < bkupMapData.currentFloor->fieldCount; i++) {
+    serialPrintNL();
+    serialPrintInt(mapData.currentField->pos.x);
+    serialPrintInt(mapData.currentField->pos.y);
+    serialPrintInt(mapData.heading);
+    serialPrintNL();
 
-        fieldPtr = &bkupMapData.currentFloor->fieldArray[i];
+    serialPrintInt(COM_MAP_SEND_START);
+    serialPrintNL();
+
+    for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+
+        fieldPtr = &mapData.currentFloor->fieldArray[i];
 
         serialPrintInt(fieldPtr->pos.x);
         serialPrintInt(fieldPtr->pos.y);
@@ -544,5 +668,26 @@ void mapSender() {
         serialPrintNL();
     }
 
+    serialPrintNL();
+
+    serialPrintInt(COM_MAP_SEND_STOP);
+    serialPrintNL();
+
+    serialPrintInt(COM_VICT_SEND_START);
+    serialPrintNL();
+
+    Victim* victimPtr = mapData.headVictim;
+
+    while(victimPtr != NULL) {
+
+        serialPrintInt(victimPtr->field.x);
+        serialPrintInt(victimPtr->field.y);
+        serialPrintInt(victimPtr->direction);
+        serialPrintNL();
+
+        victimPtr = victimPtr->next;
+    }
+
+    serialPrintInt(COM_VICT_SEND_STOP);
     serialPrintNL();
 }

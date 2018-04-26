@@ -8,12 +8,13 @@
 #include "analog.h"
 #include "light.h"
 #include "rgb.h"
+#include "driveStateMachine.h"
 
 
 #define WALL 1
 #define NO_WALL 0
 
-#define ERR_MAP_INCON 0xFF00
+#define ERR_MAP_INCON 0xF00
 
 
 typedef struct Point {
@@ -56,6 +57,16 @@ typedef struct Ramp {
     struct Ramp* next;
 } Ramp;
 
+typedef struct Victim {
+    uint8_t floor;
+    struct Point field;
+    unsigned int direction : 2;
+
+    unsigned int type : 2;
+
+    struct Victim* next;
+} Victim;
+
 typedef struct Map {
     unsigned int heading : 2;
     
@@ -67,6 +78,9 @@ typedef struct Map {
 
     struct Ramp* headRamp;
     struct Ramp* tailRamp;
+
+    struct Victim* headVictim;
+    struct Victim* tailVictim;
 } Map;
 
 struct Map mapData;
@@ -88,6 +102,8 @@ Field* mapCreateField(Point pos);
 Floor* mapCreateFloor();
 
 Ramp* mapCreateRamp();
+
+Victim* mapCreateVictim(short localDir, uint8_t type);
 
 short mapLocalToGlobalDirection(short dir);
 
@@ -118,6 +134,8 @@ void mapChangeFloor(Ramp* ramp);
 void mapSetRamp();
 
 void mapFinishRamp();
+
+int8_t mapGetVictimType(short dir);
 
 bool mapOnStartField();
 

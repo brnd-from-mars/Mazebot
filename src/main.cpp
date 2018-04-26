@@ -132,6 +132,8 @@ void loop() {
         if(lastMapRestoreBackupSwitchState) {
 
             mapRestoreFromBackup();
+            Serial.println(255);
+            mapSender();
             encoderReset();
             driveSMInit();
             lastAction = NAVIGATION_ACTION_RESTORE_BKUP;
