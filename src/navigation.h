@@ -27,7 +27,7 @@ void navigationInit();
 
 void navigate();
 
-void navigationUpdateMap(int8_t action);
+void navigationUpdateMap();
 
 
 #endif

@@ -4,25 +4,26 @@ void driveSMInit() {
     rotateState = -1;
     forwardState = -1;
     targetEncoderValue = 0;
+    cameraStart = 0;
 }
 
 void startRotate(int angle) {
     switch(angle) {
     case 90:
         rotateState = 0;
-        targetEncoderValue = 65;
+        targetEncoderValue = 70;
         break;
     case -90:
         rotateState = 0;
-        targetEncoderValue = -65;
+        targetEncoderValue = -70;
         break;
     case 180:
         rotateState = 0;
-        targetEncoderValue = 130;
+        targetEncoderValue = 140;
         break;
     case -180:
         rotateState = 0;
-        targetEncoderValue = -130;
+        targetEncoderValue = -140;
         break;
     }
 }
@@ -33,7 +34,7 @@ void startForwardEnc(int distance) {
 }
 
 void startForwardCM(int distance) {
-    startForwardEnc((int)(distance * 4.60));
+    startForwardEnc((int)(distance * 4.70));
 }
 
 void processRotate() {
@@ -63,10 +64,28 @@ void processRotate() {
     // correct position and orientation
     case 2:
         if(!correctRotationPosition(false)) {
+            motorBrake();
+            driveReset();
             targetEncoderValue = 0;
+            cameraStart = millis();
+
+            if(entireWall(RIGHT, 150)) {
+                serialPrintInt(COM_SCAN_RIGHT);
+                serialPrintNL();
+            }
+            if(entireWall(LEFT, 150)) {
+                serialPrintInt(COM_SCAN_LEFT);
+                serialPrintNL();
+            }
             rotateState = -1;
         }
         rgbSet(0, 0, 32, 0);
+        break;
+    // wait until image was taken
+    case 3:
+        if(millis() > cameraStart + 500) {
+            rotateState = -1;
+        }
         break;
     }
 }
@@ -101,11 +120,29 @@ void processForward() {
     // correct position and orientation
     case 2:
         if(!correctRotationPosition(false)) {
+            motorBrake();
             driveReset();
             targetEncoderValue = 0;
-            forwardState = -1;
+            cameraStart = millis();
+
+            if(entireWall(RIGHT, 150)) {
+                serialPrintInt(COM_SCAN_RIGHT);
+                serialPrintNL();
+            }
+            if(entireWall(LEFT, 150)) {
+                serialPrintInt(COM_SCAN_LEFT);
+                serialPrintNL();
+            }
+            forwardState = 3;
         }
         rgbSet(0, 0, 32, 0);
+        break;
+    // wait until image was taken
+    case 3:
+        if(millis() > cameraStart + 500) {
+            forwardState = -1;
+        }
+        motorBrake();
         break;
     }
 }
@@ -119,8 +156,7 @@ int distanceCoveredEnc() {
     return (int)(0.25*sum);
 }
 
-int getRotationProcess()
-{
+int getRotationProcess() {
     if(rotateState != -1)
         if(abs(distanceCoveredEnc())>abs(targetEncoderValue)/2)
             return SIGNUM(targetEncoderValue);
@@ -128,11 +164,10 @@ int getRotationProcess()
     return 0;
 }
 
-int getForwardProcess()
-{
+int getForwardProcess() {
     if(forwardState != -1)
         if(SIGNUM(targetEncoderValue)==1)
-            if(abs(distanceCoveredEnc())>abs(targetEncoderValue)/2)
+            if(abs(distanceCoveredEnc())>0.7*abs(targetEncoderValue))
                 return 1;
 
     return 0;

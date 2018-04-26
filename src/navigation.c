@@ -3,85 +3,88 @@
 
 void navigationInit() {
     enableNavigation = true;
-    blackEscaping = false;
-    lastRampState = 0;
-    lastAction = -1;
-    lastRotateState = -1;
+    blackEscaping    = false;
+    lastRampState    =  0;
+    lastAction       = -1;
+    lastRotateState  = -1;
     lastForwardState = -1;
 }
 
 
 void navigate() {
-    if(isBlack && !blackEscaping && !mapJustFinishedRamp() && rampState==0) {
+
+    if(isBlack && !blackEscaping) {
         motorBrake();
-        int distanceEnc = distanceCoveredEnc();
-        encoderReset();
-        mapFrontFieldBlack();
-        startForwardEnc(-distanceEnc);
-        lastAction = 4;
+        startForwardEnc(-distanceCoveredEnc());
+        lastAction = NAVIGATION_ACTION_ESC_BLACK;
         blackEscaping = true;
     }
 
-    if(rampState==1) {
-        drive(160, 0.5, 0.02, 1.0);
+    if(rampState == 1) {
+        drive(140, 0.5, 0.02, 0.0);
         rgbSet(32, 32, 32, 0);
-        if(lastRampState!=1) {
+        if(lastRampState != 1) {
             mapSetRamp();
         }
-    } else if(rampState==-1) {
-        drive(80, 0.5, 0.02, 1.0);
+
+    } else if(rampState == -1) {
+        drive(100, 0.5, 0.02, 0.0);
         rgbSet(32, 32, 32, 0);
-        if(lastRampState!=-1) {
+        if(lastRampState != -1) {
             mapSetRamp();
         }
+
+    } else if(lastRampState != 0) {
+        mapFinishRamp();
+        motorBrake();
+        driveReset();
+        lastAction = NAVIGATION_ACTION_DRIVE_RAMP;
+
     } else {
-        if(lastRampState!=0) {
-            mapFinishRamp();
-            driveReset();
-        }
 
-        if(rotateState==-1 && lastRotateState!=rotateState)
-            navigationUpdateMap(lastAction);
+        if(rotateState == -1 && lastRotateState != rotateState)
+            navigationUpdateMap();
 
-        if(forwardState==-1 && lastForwardState!=forwardState)
-            navigationUpdateMap(lastAction);
+        if(forwardState == -1 && lastForwardState != forwardState)
+            navigationUpdateMap();
 
         lastRotateState = rotateState;
         lastForwardState = forwardState;
 
-        if(rotateState!=-1)
+        if(rotateState != -1)
             processRotate();
-        else if(forwardState!=-1)
+
+        else if(forwardState != -1)
             processForward();
+
         else {
-            AdjacentScores gScores = mapGetAdjacentScores();
-            int8_t lScores[4];
+            
+            mapEvaluateScores();
 
-            for(uint8_t dir=0; dir<4; dir++) {
-                lScores[(dir-heading+3)%4] = gScores.score[dir];
-            }
+            if(lastScoreInfo.max > 0 && lastScoreInfo.valid) {
 
-            int8_t maxValue = -2;
-            for(uint8_t lDir=0; lDir<4; lDir++)  {
-                if(lScores[lDir]>=maxValue) {
-                    maxValue = lScores[lDir];
+                if(lastScoreInfo.adjacentScores[FRONT] == lastScoreInfo.max) {
+                    startForwardCM(30);
+                    lastAction = NAVIGATION_ACTION_DRIVE_FWD;
+                } else if(lastScoreInfo.adjacentScores[RIGHT] == lastScoreInfo.max) {
+                    startRotate(90);
+                    lastAction = NAVIGATION_ACTION_TURN_RIGHT;
+                } else if(lastScoreInfo.adjacentScores[LEFT] == lastScoreInfo.max) {
+                    startRotate(-90);
+                    lastAction = NAVIGATION_ACTION_TURN_LEFT;
+                } else if(lastScoreInfo.adjacentScores[BACK] == lastScoreInfo.max) {
+                    startRotate(90);
+                    lastAction = NAVIGATION_ACTION_TURN_RIGHT;
                 }
-            }
-
-            if(maxValue<=0) {
-                lastAction = -1;
-            } else if(lScores[FRONT]==maxValue) {
-                startForwardCM(30);
-                lastAction = FRONT;
-            } else if(lScores[RIGHT]==maxValue) {
-                startRotate(90);
-                lastAction = RIGHT;
-            } else if(lScores[LEFT]==maxValue) {
-                startRotate(-90);
-                lastAction = LEFT;
-            } else if(lScores[BACK]==maxValue) {
-                startRotate(-90);
-                lastAction = LEFT;
+            } else {
+                lastAction = NAVIGATION_ACTION_NOTHING;
+                // serialPrintInt(255);
+                // serialPrintNL();
+                // mapRestoreFromBackup();
+                // mapUpdate();
+                // mapSender();
+                // encoderReset();
+                // driveSMInit();
             }
         }
     }
@@ -89,20 +92,27 @@ void navigate() {
     lastRampState = rampState;
 }
 
-void navigationUpdateMap(int8_t action) {
+void navigationUpdateMap() {
     blackEscaping = false;
-    switch(action) {
-    case FRONT:
-        mapForward(false);
+    switch(lastAction) {
+    case NAVIGATION_ACTION_NOTHING:
         break;
-    case LEFT:
-        mapRotate(-1);
+    case NAVIGATION_ACTION_TURN_RIGHT:
+        mapRotate(1);
         break;
-    case BACK:
+    case NAVIGATION_ACTION_TURN_180:
         mapRotate(-2);
         break;
-    case RIGHT:
-        mapRotate(1);
+    case NAVIGATION_ACTION_TURN_LEFT:
+        mapRotate(-1);
+        break;
+    case NAVIGATION_ACTION_DRIVE_FWD:
+        mapForward(true);
+        break;
+    case NAVIGATION_ACTION_ESC_BLACK:
+        mapSetBlackInFront();
+        break;
+    case NAVIGATION_ACTION_DRIVE_RAMP:
         break;
     }
 }

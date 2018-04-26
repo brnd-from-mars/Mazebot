@@ -3,152 +3,149 @@
 
 
 #include <Arduino.h>
+#include <stdlib.h>
 #include "config.h"
 #include "analog.h"
 #include "light.h"
 #include "rgb.h"
+#include "driveStateMachine.h"
 
-#include <stdlib.h>
+
+#define WALL 1
+#define NO_WALL 0
+
+#define ERR_MAP_INCON 0xF00
 
 
 typedef struct Point {
-    int8_t x : 4;
-    int8_t y : 4;
+    short x;
+    short y;
 } Point;
 
-
 typedef struct Field {
-    struct Field *neighbors[4];
+    Point pos;
+    uint8_t floor;
 
-    int8_t x : 4;
-    int8_t y : 4;
+    uint8_t walls   : 4;
+    uint8_t visited : 1;
+    uint8_t black   : 1;
+    uint8_t silver  : 1;
+    uint8_t ramp    : 1;
 
-    /*
-     * 0 unvisited
-     * 1 white
-     * 2 black
-     * 3 silver
-     * 4 ramp
-     * 5 unused
-     * 6 unused
-     * 7 unused
-     */
-    int8_t type;
-
-    int8_t score;
-
-    struct Field *next;
+    short score;
 } Field;
 
 typedef struct Floor {
     uint8_t id;
 
-    Field *start;
-    Field *end;
+    struct Field* fieldArray;
+    short fieldCount;
 
-    Field *lastField;
+    struct Field* startField;
+    struct Field* lastVisitedField;
 
-    bool finished;
-
-    struct Floor *next;
+    struct Floor* next;
 } Floor;
 
-typedef struct AdjacentScores {
-    int8_t score[4];
-} AdjacentScores;
-
 typedef struct Ramp {
-    int8_t floor1;
-    Point field1;
+    uint8_t floor1;
+    uint8_t floor2;
 
-    int8_t floor2;
-    Point field2;
+    struct Point field1;
+    struct Point field2;
 
-    struct Ramp *next;
+    struct Ramp* next;
 } Ramp;
 
 typedef struct Victim {
-    int8_t dir;
-    int8_t floor;
-    Point field;
+    uint8_t floor;
+    struct Point field;
+    unsigned int direction : 2;
 
-    struct Victim *next;
+    unsigned int type : 2;
+
+    struct Victim* next;
 } Victim;
 
+typedef struct Map {
+    unsigned int heading : 2;
+    
+    struct Floor* headFloor;
+    struct Floor* tailFloor;
 
-uint8_t heading;
+    struct Floor* currentFloor;
+    struct Field* currentField;
 
-Floor *startFloor;
+    struct Ramp* headRamp;
+    struct Ramp* tailRamp;
 
-Floor *currentFloor;
+    struct Victim* headVictim;
+    struct Victim* tailVictim;
+} Map;
 
-Field *currentField;
+struct Map mapData;
+struct Map bkupMapData;
 
-Ramp *firstRamp;
+struct ScoreInfo {
+    bool valid;
+    short adjacentScores[4];
+    short max;
+} lastScoreInfo;
 
-Victim *firstVictim;
-
-bool blockRampUp;
-
-bool blockRampDown;
-
-// BACKUP:
-
-uint8_t bkupHeading;
-
-Floor *bkupStartFloor;
-
-Floor *bkupCurrentFloor;
-
-Field *bkupCurrentField;
-
-Ramp *bkupFirstRamp;
-
-Victim *bkupFirstVictim;
-
-bool bkupBlockRampUp;
-
-bool bkupBlockRampDown;
-
-// FUNCTIONS:
 
 void mapInit();
 
-Field* mapCreateField(int8_t x, int8_t y, bool startField);
+void mapUpdate();
 
-uint8_t mapLocalToGlobalDirection(uint8_t local);
+Field* mapCreateField(Point pos);
 
-Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir);
+Floor* mapCreateFloor();
 
-Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir);
+Ramp* mapCreateRamp();
 
-Field* mapFindField(int8_t x, int8_t y);
+Victim* mapCreateVictim(short localDir, uint8_t type);
 
-void mapRotate(int8_t amount);
+short mapLocalToGlobalDirection(short dir);
 
-void mapForward(bool ramp);
+short mapGlobalToLocalDirection(short dir);
 
-void mapFrontFieldBlack();
+Point mapGetAdjacentPositionGlobal(Point of, short dir);
+
+Field* mapGetAdjacentFieldGlobal(Point of, short dir);
+
+Field* mapFindField(Point at);
+
+Floor* mapFindFloor(uint8_t id);
+
+Ramp* mapFindRamp(Point end);
+
+void mapSetWall(Field* field, short dir, uint8_t state);
+
+uint8_t mapGetWall(Field* field, short dir);
+
+void mapRotate(short amount);
+
+void mapForward(bool update);
+
+void mapSetBlackInFront();
+
+void mapChangeFloor(Ramp* ramp);
 
 void mapSetRamp();
 
 void mapFinishRamp();
 
-bool mapJustFinishedRamp();
+int8_t mapGetVictimType(short dir);
 
-void mapSetVictim(int side, int rotOffset, bool front);
+bool mapOnStartField();
 
-bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front);
+bool mapSetStartScores();
 
-void mapUpdate();
+void mapEvaluateScores();
 
-AdjacentScores mapGetAdjacentScores();
+void mapCopy(Map* source, Map* destination);
 
-void mapMakeBackup();
-
-void mapRestoreBackup();
-
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Victim *srcStartVictim, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp, Victim **destStartVictim);
+void mapRestoreFromBackup();
 
 void mapSender();
 

@@ -1,673 +1,693 @@
-#include "map.h" // geht nicht putt
+#include "map.h"
 
 
 void mapInit() {
 
-    heading = NORTH;
+    mapData.heading = NORTH;
+    mapData.headFloor = malloc(sizeof(Floor));
+    mapData.tailFloor = mapData.headFloor;
+    mapData.currentFloor = mapData.headFloor;
 
-    // create startFloor
-    startFloor = malloc(sizeof(Floor));
-    // set startFloor to currentFloor
-    currentFloor = startFloor;
-    currentFloor->id = 0;
-    currentFloor->finished = false;
+    mapData.currentFloor->id = 0;
+    mapData.currentFloor->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
+    mapData.currentFloor->fieldCount = 0;
+    mapData.currentFloor->next = NULL;
 
-    // no next floor exists, yet
-    currentFloor->next = NULL;
+    mapCreateField((Point) {0, 0});
+    mapData.currentField = mapData.currentFloor->startField;
 
-    // create startField and set it to currentFloor's startField
-    mapCreateField(0, 0, true);
-    // set startField to currentField
-    currentField = currentFloor->start;
-    currentFloor->lastField = currentField;
+    mapData.headRamp = NULL;
+    mapData.tailRamp = NULL;
+    mapData.headVictim = NULL;
+    mapData.tailVictim = NULL;
 
-    firstRamp = NULL;
-    firstVictim = NULL;
+    bkupMapData.heading = NORTH;
+    bkupMapData.headFloor = NULL;
+    bkupMapData.tailFloor = NULL;
+    bkupMapData.currentFloor = NULL;
+    bkupMapData.currentField = NULL;
+    bkupMapData.headRamp = NULL;
+    bkupMapData.tailRamp = NULL;
+    bkupMapData.headVictim = NULL;
+    bkupMapData.tailVictim = NULL;
 
-    // set whole backupDate
-    bkupHeading = NORTH;
-    bkupStartFloor = NULL;
-    bkupCurrentFloor = NULL;
-    bkupCurrentField = NULL;
-    bkupFirstRamp = NULL;
+    lastScoreInfo.valid      = false;
 
-    blockRampUp = false;
-    blockRampDown = false;
-    bkupBlockRampUp = false;
-    bkupBlockRampDown = false;
-
-    // update map
-    // -> create surrounding visible fields
-    // -> link them to already known fields
-    // -> make first backup
     mapUpdate();
+    //mapCopy(&mapData, &bkupMapData); // just for testing
 }
 
-Field* mapCreateField(int8_t x, int8_t y, bool startField) {
-    Field *new = malloc(sizeof(Field));
-    Point nP = {.x=x, .y=y};
+void mapUpdate() {
 
-    new->x = x;
-    new->y = y;
-    new->type = 0;
-    new->score = 0;
+    mapData.currentField->visited = 1;
 
-    // init walls, other functions depend on that
-    // the pointers to neighbor walls in a struct should be
-    // either NULL or direct to another field
-    // -> nether unititialized
-    for(uint8_t i=0; i<4; i++)
-        new->neighbors[i] = NULL;
+    uint8_t walls = getWallData(mapData.heading);
 
-    // explanation: look down in this function
-    bool shouldGetDeleted = false;
+    for(short dir = 0; dir < 4; dir++) {
 
-    // if field is startField
-    if(startField) {
-        // set head and tail of current floor linked list
-        currentFloor->start = new;
-        currentFloor->end = new;
-    // if not
-    } else {
-        // field should get deleted as long as it don't have
-        shouldGetDeleted = true;
-        for(uint8_t i=0; i<4; i++) {
-            Point aP = mapGetAdjacentPositionGlobal(nP, i);
-            // ... any known adjacent fields
-            Field *aF = mapFindField(aP.x, aP.y);
-            if(aF != NULL) {
-                if(aF == currentField) {
-                    // if not -> create link
-                    shouldGetDeleted = false;
-                    aF->neighbors[(i+2)%4] = new;
-                    new->neighbors[i] = aF;
-                } else {
-                    // if adjacent field not visited ...
-                    if(aF->type == 0) {
-                        // ... create link
-                        shouldGetDeleted = false;
-                        aF->neighbors[(i+2)%4] = new;
-                        new->neighbors[i] = aF;
-                    }
-                    // otherwise the field to create should have
-                    // been already created
-                    // -> implement an error catching at this point?
-                }
+        if((bool) (walls & (1 << dir))) {
+
+            mapSetWall(mapData.currentField, dir, WALL);
+            mapSetWall(mapGetAdjacentFieldGlobal(mapData.currentField->pos, dir), (dir+2)%4, WALL);
+
+        } else {
+
+            Field* connectedNeighbour = mapGetAdjacentFieldGlobal(mapData.currentField->pos, dir);
+            if(connectedNeighbour == NULL) {
+
+                Point pos = mapGetAdjacentPositionGlobal(mapData.currentField->pos, dir);
+                connectedNeighbour = mapCreateField(pos);
             }
+            mapSetWall(mapData.currentField, dir, NO_WALL);
+            mapSetWall(connectedNeighbour, (dir+2)%4, NO_WALL);
         }
     }
 
-    // only fields that are adjacent to an other can be created
-    // otherwise it would end up without any reference to it
-    // exception: floor-startfields have a pointer that reference them
-    // in the floor struct that belongs to it
-    if(shouldGetDeleted) {
-        free(new);
-        return NULL;
-    } else if(!startField) {
-        // set new tail of field linked list for current floor
-        currentFloor->end->next = new;
-        currentFloor->end = new;
+    if(isSilver ||
+      mapData.currentField->silver == 1 ||
+      mapData.currentField == mapData.currentFloor->startField) {
+        mapData.currentField->silver = 1;
+        mapCopy(&mapData, &bkupMapData);
     }
 
-    new->next = NULL;
-
-    return new;
+    mapSender();
+    lastScoreInfo.valid = false;
 }
 
-uint8_t mapLocalToGlobalDirection(uint8_t local) {
-    return (uint8_t)((local + heading + 1)%4);
+Field* mapCreateField(Point pos) {
+
+    short index = mapData.currentFloor->fieldCount;
+    bool startField = (index == 0);
+
+    mapData.currentFloor->fieldCount++;
+
+    Field* fieldPtr   = &mapData.currentFloor->fieldArray[index];
+
+    fieldPtr->pos     = pos;
+    fieldPtr->floor   = mapData.currentFloor->id;
+    fieldPtr->walls   = 0B1111;
+    fieldPtr->visited = 0;
+    fieldPtr->black   = 0;
+    fieldPtr->silver  = 0;
+    fieldPtr->ramp    = 0;
+    fieldPtr->score   = 0;
+
+    bool shouldGetDeleted = false;
+
+    if(startField) {
+
+        mapData.currentFloor->lastVisitedField = fieldPtr;
+        mapData.currentFloor->startField = fieldPtr;
+
+    } else {
+
+        shouldGetDeleted = true;
+
+        for(short dir = 0; dir < 4; dir++) {
+            
+            Field* neighbour = mapGetAdjacentFieldGlobal(pos, dir);
+            if(neighbour != NULL) {
+                
+                shouldGetDeleted = false;
+                mapSetWall(fieldPtr, dir, NO_WALL);
+                mapSetWall(neighbour, (dir+2)%4, NO_WALL);
+
+            }
+        }
+
+        if(shouldGetDeleted) {
+            mapData.currentFloor->fieldCount--;
+            return NULL;
+        }
+    }
+
+    return fieldPtr;
 }
 
-Point mapGetAdjacentPositionLocal(Point aP, uint8_t dir) {
-    uint8_t global = mapLocalToGlobalDirection(dir);
-    return mapGetAdjacentPositionGlobal(aP, global);
+Floor* mapCreateFloor() {
+
+    mapData.tailFloor->next = malloc(sizeof(Floor));
+    mapData.tailFloor->next->id = mapData.tailFloor->id + 1;
+    mapData.tailFloor->next->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
+    mapData.tailFloor->next->fieldCount = 0;
+    mapData.tailFloor->next->next = NULL;
+
+    mapData.tailFloor = mapData.tailFloor->next;
+    mapData.currentFloor = mapData.tailFloor;
+
+    mapData.currentField = mapCreateField((Point) {0, 0});
+    mapData.currentField->ramp = 1;
+    mapData.currentField->visited = 1;
+
+    return mapData.tailFloor;
 }
 
-Point mapGetAdjacentPositionGlobal(Point aP, uint8_t dir) {
-    // some magic formulas that calculate the change of coordinates into
-    // different directions
-    // do not remove or edit this formula, it let Brendan in a big struggle
-    // for a long time (because he hadn't type casted the result of
-    // abs to something signed)
-    Point rP = {.x=aP.x+(int8_t)(abs(dir-2))-1, .y=aP.y+(int8_t)(abs(dir-1))-1};
+Ramp* mapCreateRamp() {
+
+    uint8_t fl1 = mapData.currentFloor->id;
+    Point fd1 = mapData.currentField->pos;
+
+    mapCreateFloor();
+
+    if(mapData.headRamp == NULL) {
+        mapData.headRamp = malloc(sizeof(Ramp));
+        mapData.tailRamp = mapData.headRamp;
+    } else {
+        mapData.tailRamp->next = malloc(sizeof(Ramp));
+        mapData.tailRamp = mapData.tailRamp->next;
+    }
+
+    mapData.tailRamp->floor1 = fl1;
+    mapData.tailRamp->floor2 = mapData.currentFloor->id;
+    mapData.tailRamp->field1 = fd1;
+    mapData.tailRamp->field2 = mapData.currentField->pos;
+    mapData.tailRamp->next = NULL;
+
+    return mapData.tailRamp;
+}
+
+Victim* mapCreateVictim(short localDir, uint8_t type) {
+
+    short global = mapLocalToGlobalDirection(localDir);
+
+    Point field = mapData.currentField->pos;
+
+    if(getForwardProcess() == 1) {
+        field = mapGetAdjacentPositionGlobal(field, mapData.heading);
+    } else {
+        global += getRotationProcess();
+        global = global % 4;
+        if(global < 0)
+            global += 4;
+    }
+
+    if(mapData.headVictim == NULL) {
+        mapData.headVictim = malloc(sizeof(Victim));
+        mapData.tailVictim = mapData.headVictim;
+    } else {
+        mapData.tailVictim->next = malloc(sizeof(Victim));
+        mapData.tailVictim = mapData.tailVictim->next;
+    }
+
+    mapData.tailVictim->next = NULL;
+
+    mapData.tailVictim->floor = mapData.currentFloor->id;
+    mapData.tailVictim->field = field;
+    mapData.tailVictim->direction = global;
+
+    return mapData.tailVictim;
+}
+
+short mapLocalToGlobalDirection(short loc) {
+
+    short glob = (loc + mapData.heading + 1) % 4;
+    return ((glob < 0) ? (glob + 4) : glob);
+}
+
+short mapGlobalToLocalDirection(short glob) {
+
+    short loc = (glob - mapData.heading - 1) % 4;
+    return ((loc < 0) ? (loc + 4) : loc);
+}
+
+Point mapGetAdjacentPositionGlobal(Point of, short dir) {
+
+    // plot it for 0<=dir<=3 and you will get the idea
+    Point rP = {of.x+(abs(dir-2))-1, of.y+(abs(dir-1))-1};
     return rP;
 }
 
-Field* mapFindField(int8_t x, int8_t y) {
-    // let cursor point to current floor's startField
-    Field *fieldPtr = currentFloor->start;
+Field* mapGetAdjacentFieldGlobal(Point of, short dir) {
 
-    // iterate through all fields in current floor
-    do {
-        // if coordinates match requested ones
-        if((fieldPtr->x==x) && (fieldPtr->y==y))
-            // return current cursor
+    Point rP = mapGetAdjacentPositionGlobal(of, dir);
+    return mapFindField(rP);
+}
+
+Field* mapFindField(Point at) {
+
+    Field* fieldPtr = NULL;
+
+    for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+    
+        fieldPtr = &mapData.currentFloor->fieldArray[i];
+        if(fieldPtr->pos.x == at.x && fieldPtr->pos.y == at.y)
             return fieldPtr;
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
+
+    }
 
     return NULL;
 }
 
-void mapRotate(int8_t amount) {
-    // this function does not rotate the map!
-    // it just keeps track of the robot's current
-    // orientation
-    int8_t new = (heading+amount);
-    while(new<0)
-        new+=4;
-    heading = new%4;
+Floor* mapFindFloor(uint8_t id) {
+
+    Floor* floorPtr = mapData.headFloor;
+
+    while(floorPtr != NULL) {
+
+        if(floorPtr->id == id)
+            return floorPtr;
+
+        floorPtr = floorPtr->next;
+    }
+
+    return NULL;
 }
 
-void mapForward(bool ramp) {
-    // get last position
-    Point lP = {.x=currentField->x, .y=currentField->y};
-    // get new position
-    Point nP = mapGetAdjacentPositionLocal(lP, FRONT);
+Ramp* mapFindRamp(Point end) {
 
-    // check, if field already exists and set new currentField
-    Field *nF = mapFindField(nP.x, nP.y);
-    if(nF != NULL)
-        currentField = nF;
-    // if not -> should be an error
+    Ramp* rampPtr = mapData.headRamp;
 
-    currentFloor->lastField = currentField;
-    
-    // update map to create new observed fields
-    if(!ramp)
-        mapUpdate();
-}
+    while(rampPtr != NULL) {
 
-void mapFrontFieldBlack() {
-    // get current position
-    Point cP = {.x=currentField->x, .y=currentField->y};
-    // get position in front of the robot
-    Point fP = mapGetAdjacentPositionLocal(cP, FRONT);
-
-    // check, if field already exists and set type to black
-    Field *fF = mapFindField(fP.x, fP.y);
-    if(fF != NULL)
-        fF->type = 2;
-    // if not -> should be an error
-}
-
-void mapSetRamp() {
-    mapForward(true);
-    currentField->type = 4;
-
-    bool newRamp = true;
-    Ramp *rampPtr = firstRamp;
-    Ramp *lastRampPtr = NULL;
-    while(rampPtr!=NULL && newRamp) {
-        Point rP = {.x=currentField->x, .y=currentField->y};
-        if(rampPtr->floor1==currentFloor->id && rampPtr->field1.x==rP.x && rampPtr->field1.y==rP.y)
-            newRamp = false;
-        if(rampPtr->floor2==currentFloor->id && rampPtr->field2.x==rP.x && rampPtr->field2.y==rP.y)
-            newRamp = false;
-
-        lastRampPtr = rampPtr;
+        if((rampPtr->field1.x == end.x) && (rampPtr->field1.y == end.y))
+            return rampPtr;
+        if((rampPtr->field2.x == end.x) && (rampPtr->field2.y == end.y))
+            return rampPtr;
+        
         rampPtr = rampPtr->next;
     }
 
-    if(newRamp) {
-        if(lastRampPtr == NULL) {
-            firstRamp = malloc(sizeof(Ramp));
-            rampPtr = firstRamp;
-        } else {
-            lastRampPtr->next = malloc(sizeof(Ramp));
-            rampPtr = lastRampPtr->next;
-        }
+    return NULL;
+}
 
-        Point cP = {.x=currentField->x, .y=currentField->y};
+void mapSetWall(Field* field, short dir, uint8_t state) {
 
-        rampPtr->next = NULL;
-        rampPtr->floor1 = currentFloor->id;
-        rampPtr->field1 = cP;
+    if(field == NULL)
+        return;
 
-        currentFloor->next = malloc(sizeof(Floor));
-        currentFloor->next->id = currentFloor->id+1;
-        currentFloor = currentFloor->next;
-        currentFloor->next = NULL;
-        currentFloor->finished = false;
+    field->walls &= ~(1 << dir);
+    if(state == WALL)
+        field->walls |= (1 << dir);
+}
 
-        mapCreateField(0, 0, true);
-        currentField = currentFloor->start;
-        currentFloor->lastField = currentField;
+uint8_t mapGetWall(Field* field, short dir) {
 
-        currentField->type = 4;
+    return (((bool) (field->walls & (1 << dir))) ? WALL : NO_WALL);
+}
 
-        cP.x = currentField->x;
-        cP.y = currentField->y;
+void mapRotate(short amount) {
 
-        rampPtr->floor2 = currentFloor->id;
-        rampPtr->field2 = cP;
+    mapData.heading += amount;
+    mapData.heading = mapData.heading % 4;
 
-        Point nP = mapGetAdjacentPositionLocal(cP, FRONT);
-        mapCreateField(nP.x, nP.y, false);
+    if(mapData.heading < 0)
+        mapData.heading += 4;
 
-        mapForward(true);
-    } else {
-        if(lastRampPtr->floor1 == currentFloor->id) {
-            Floor *floorPtr = startFloor;
-            while(floorPtr!=NULL && floorPtr->id!=lastRampPtr->floor2)
-                floorPtr = floorPtr->next;
-            currentFloor = floorPtr;
-            currentField = currentFloor->lastField;
-            mapForward(true);
-        } else if(lastRampPtr->floor2 == currentFloor->id) {
-            Floor *floorPtr = startFloor;
-            while(floorPtr!=NULL && floorPtr->id!=lastRampPtr->floor1)
-                floorPtr = floorPtr->next;
-            currentFloor = floorPtr;
-            currentField = currentFloor->lastField;
-            mapForward(true);
-        }
+    mapUpdate();
+}
+
+void mapForward(bool update) {
+
+    Field* front = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
+
+    mapData.currentField = front;
+    mapData.currentFloor->lastVisitedField = mapData.currentField;
+
+    if(update) {
+        mapUpdate();
+    }
+}
+
+void mapSetBlackInFront() {
+
+    Field* front = mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading);
+
+    front->visited = 1;
+    front->black = 1;
+    front->score = -1;
+    
+    mapUpdate();
+}
+
+void mapChangeFloor(Ramp* ramp) {
+
+    uint8_t newID = ramp->floor1;
+    if(newID == mapData.currentFloor->id) {
+        newID = ramp->floor2;
     }
 
+    mapData.currentFloor = mapFindFloor(newID);
+    mapData.currentField = mapData.currentFloor->lastVisitedField;
+}
+
+void mapSetRamp() {
+
+    mapForward(false);
+
+    mapData.currentField->visited = 1;
+
+    Ramp* currentRamp = NULL;
+
+    if(mapData.currentField->ramp) {
+
+        currentRamp = mapFindRamp(mapData.currentField->pos);
+
+        if(currentRamp != NULL) {
+            mapChangeFloor(currentRamp);
+        } else { // should never happen
+            currentRamp = mapCreateRamp();
+        }
+
+    } else {
+        mapData.currentField->ramp = 1;
+        currentRamp = mapCreateRamp();
+    }
+
+    // map is now pointing to final floor to the last tile on the ramp
+
+    serialPrintNL();
     serialPrintInt(255);
+    serialPrintNL();
     mapSender();
 }
 
 void mapFinishRamp() {
-    serialPrintInt(255);
-    mapSender();
+
+    if(mapGetAdjacentFieldGlobal(mapData.currentField->pos, mapData.heading) == NULL) {
+        Point pos = mapGetAdjacentPositionGlobal(mapData.currentField->pos, mapData.heading);
+        mapCreateField(pos);
+    }
+
+    mapForward(true);
 }
 
-bool mapJustFinishedRamp()
-{
-    int dir = mapLocalToGlobalDirection(BACK);
+int8_t mapGetVictimType(short dir) {
 
-    return (currentField->neighbors[dir]->type == 4);
-}
+    Victim* victimPtr = mapData.headVictim;
 
-void mapSetVictim(int side, int rotOffset, bool front) {
-    int dir = (int)(heading + rotOffset + side);
-    dir = dir%4;
-    while(dir<0)
-        dir+=4;
-    Point field = {.x=currentField->x, .y=currentField->y};
+    short global = mapLocalToGlobalDirection(dir);
 
-    if(front)
-        field = mapGetAdjacentPositionLocal(field, FRONT);
+    Point field = mapData.currentField->pos;
 
-    if(firstVictim == NULL)
-    {
-        firstVictim = malloc(sizeof(Victim));
-        firstVictim->next = NULL;
-
-        firstVictim->dir = dir;
-        firstVictim->floor = currentFloor->id;
-        firstVictim->field = field;
+    if(getForwardProcess() == 1) {
+        field = mapGetAdjacentPositionGlobal(field, mapData.heading);
     } else {
-        Victim *victimPtr = firstVictim;
-
-        while(victimPtr->next != NULL)
-            victimPtr = victimPtr->next;
-
-        victimPtr->next = malloc(sizeof(Victim));
-        victimPtr = victimPtr->next;
-        victimPtr->next = NULL;
-
-        victimPtr->dir = dir;
-        victimPtr->floor = floor;
-        victimPtr->field = field;
+        global += getRotationProcess();
+        global = global % 4;
+        if(global < 0)
+            global += 4;
     }
-}
 
-bool mapAlreadyVictimRecognized(int side, int rotOffset, bool front) {
-    int dir = (int)(heading + rotOffset + side);
-    dir = dir%4;
-    while(dir<0)
-        dir+=4;
-    int floor = currentFloor->id;
-    Point field = {.x=currentField->x, .y=currentField->y};
+    while(victimPtr != NULL) {
 
-    if(front)
-        field = mapGetAdjacentPositionLocal(field, FRONT);
+        serialPrintInt(50);
 
-    Victim *victimPtr = firstVictim;
+        if(victimPtr->direction == global
+          && victimPtr->floor == mapData.currentField->floor
+          && victimPtr->field.x == field.x
+          && victimPtr->field.y == field.y) {
+            
+            serialPrintInt(victimPtr->type);
+            serialPrintNL();
 
-    while(victimPtr->next != NULL) {
-        if(victimPtr->field.x == field.x &&
-            victimPtr->field.y == field.y &&
-            victimPtr->floor == floor &&
-            victimPtr->dir == dir) 
-            return true;
+            return victimPtr->type;
+        }
+
         victimPtr = victimPtr->next;
     }
 
-    return false;
+    return -1;
 }
 
-void mapUpdate() {
-    // set current position and temporary type
-    Point cP = {.x=currentField->x, .y=currentField->y};
-    if(currentField->type != 4)
-        currentField->type = 1;
+bool mapOnStartField() {
 
-    // request information about surrounding fields
-    uint8_t walldata = getWallData(heading);
-
-    // iterate through all directions
-    for(uint8_t dir=0; dir<4; dir++) {
-        // if wall detected
-        if((bool)(walldata & (1<<dir))) {
-            // but next field linked to current
-            if(currentField->neighbors[dir]!=NULL) {
-                // then remove link between them
-                currentField->neighbors[dir]->neighbors[(dir+2)%4] = NULL;
-                currentField->neighbors[dir] = NULL;
-            }
-        }
-        // if no wall detected
-        else {
-            // but no link to another field
-            if(currentField->neighbors[dir]==NULL) {
-                Point aP = mapGetAdjacentPositionGlobal(cP, dir);
-                Field *aF = mapFindField(aP.x, aP.y);
-                // but field exists
-                if(aF!=NULL) {
-                    // wild ERROR appeared
-                    // -> map corrupted
-                    // link them anyway
-                    currentField->neighbors[dir] = aF;
-                    aF->neighbors[(dir+2)%4] = currentField;
-                } else {
-                    // then create and link field
-                    mapCreateField(aP.x, aP.y, false);
-                }
-            }
-        }
-    }
-
-    // specify field type and if necessary store backup
-    if(currentField->type != 4) {
-        if(isBlack)
-            currentField->type = 2;
-        else if(isSilver || (currentField == startFloor->start)) {
-            currentField->type = 3;
-            mapMakeBackup();
-        }
-    }
+    return (mapData.currentField == mapData.currentFloor->startField);
 }
 
-AdjacentScores mapGetAdjacentScores() {
-    Field *fieldPtr = currentFloor->start;
+bool mapSetStartScores() {
 
-    bool flag = false;
+    Field* fieldPtr = NULL;
+    bool backToOrigin = true;
 
-    do {
-        if(fieldPtr->type == 2)
+    for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+
+        fieldPtr = &mapData.currentFloor->fieldArray[i];
+
+        if(fieldPtr->black)
             fieldPtr->score = -1;
-        else if(fieldPtr->type != 0)
+        else if(fieldPtr->visited)
             fieldPtr->score = 0;
         else {
-            fieldPtr->score = 127;
-            flag = true;
+            fieldPtr->score = 255;
+            backToOrigin = false;
         }
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
 
-    if(flag==false && currentField!=currentFloor->start) {
-        fieldPtr = currentFloor->start;
-        currentFloor->start->type = 0;
-        do {
-            if(fieldPtr->type == 2)
-                fieldPtr->score = -1;
-            else if(fieldPtr->type != 0)
-                fieldPtr->score = 0;
-            else
-                fieldPtr->score = 127;
-            fieldPtr = fieldPtr->next;
-        } while(fieldPtr != NULL);
     }
 
-    if((currentField!=currentFloor->start) || (currentField==currentFloor->start && flag==true)) {
+    return backToOrigin;
+}
 
-        int8_t i=127;
+void mapEvaluateScores() {
 
-        while(currentField->score==0) {
-            fieldPtr = currentFloor->start;
-            do {
-                if(fieldPtr->score == 0) {
-                    for(uint8_t dir=0; dir<4; dir++) {
-                        if(fieldPtr->neighbors[dir]!=NULL) {
-                            if(fieldPtr->neighbors[dir]->score == i) {
-                                fieldPtr->score = i-1;
+    Field* fieldPtr = NULL;
+    bool backToOrigin = mapSetStartScores();
+    
+    if(backToOrigin && !mapOnStartField()) {
+        mapData.currentFloor->startField->visited = 0;
+        mapSetStartScores();
+    }
+
+    if(!mapOnStartField() || (mapOnStartField() && !backToOrigin)) {
+
+        short currentScore = 255;
+
+        while(mapData.currentField->score == 0) {
+
+            fieldPtr = NULL;
+
+            for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+
+                fieldPtr = &mapData.currentFloor->fieldArray[i];
+
+                if(fieldPtr->score == 0 && !fieldPtr->ramp) {
+                    for(short dir = 0; dir < 4; dir++) {
+                        if(mapGetWall(fieldPtr, dir) == NO_WALL) {
+                            Field* neighbour = mapGetAdjacentFieldGlobal(fieldPtr->pos, dir);
+                            if(neighbour != NULL && neighbour->score == currentScore) {
+                                fieldPtr->score = currentScore - 1;
                             }
                         }
                     }
                 }
-                fieldPtr = fieldPtr->next;
-            } while(fieldPtr != NULL);
-            i--;
-        }
-    
-    }
 
-    AdjacentScores aScores;
-
-    for(uint8_t dir=0; dir<4; dir++) {
-        if(currentField->neighbors[dir]==NULL)
-            aScores.score[dir] = -1;
-        else
-            aScores.score[dir] = currentField->neighbors[dir]->score;
-    }
-
-    mapSender();
-    return aScores;
-}
-
-void mapMakeBackup() {
-    bkupHeading = heading;
-    bkupCurrentFloor = NULL;
-    bkupCurrentField = NULL;
-    mapCopy(startFloor, currentFloor, currentField, firstRamp, firstVictim, &bkupStartFloor, &bkupCurrentFloor, &bkupCurrentField, &bkupFirstRamp, &bkupFirstVictim);
-    bkupBlockRampUp = blockRampUp;
-    bkupBlockRampDown = blockRampDown;
-}
-
-void mapRestoreBackup() {
-    serialPrintNL();
-    serialPrintInt(255);
-    serialPrintNL();
-    heading = bkupHeading;
-    currentFloor = NULL;
-    currentField = NULL;
-    mapCopy(bkupStartFloor, bkupCurrentFloor, bkupCurrentField, bkupFirstRamp, bkupFirstVictim, &startFloor, &currentFloor, &currentField, &firstRamp, &firstVictim);
-    mapSender();
-    blockRampUp = bkupBlockRampUp;
-    blockRampDown = bkupBlockRampDown;
-}
-
-// don't touch this
-// it works
-// 
-// somehow
-// in a way
-void mapCopy(Floor *srcStartFloor, Floor *srcCurrentFloor, Field *srcCurrentField, Ramp *srcStartRamp, Victim *srcStartVictim, Floor **destStartFloor, Floor **destCurrentFloor, Field **destCurrentField, Ramp **destStartRamp, Victim **destStartVictim) {
-
-    // delete old stuff at the source
-
-    Floor *destFloorPtr = (*destStartFloor);
-
-    // iterate through all floors
-    while(destFloorPtr!=NULL) {
-        Field *destFieldPtr = destFloorPtr->start;
-        // iterate through all fields
-        do {
-            Field *nextField = destFieldPtr->next;
-            // delete field
-            free(destFieldPtr);
-            destFieldPtr = nextField;
-        } while(destFieldPtr != NULL);
-        Floor *nextFloor = destFloorPtr->next;
-        // delete floor
-        free(destFloorPtr);
-        destFloorPtr = nextFloor;
-    }
-
-    Ramp *destRampPtr = (*destStartRamp);
-
-    while(destRampPtr!=NULL) {
-        Ramp *nextRamp = destRampPtr->next;
-        free(destRampPtr);
-        destRampPtr = nextRamp;
-    }
-
-    Victim *destVictimPtr = (*destStartVictim);
-
-    while(destVictimPtr!=NULL)
-    {
-        Victim *nextVictim = destVictimPtr->next;
-        free(destVictimPtr);
-        destVictimPtr = nextVictim;
-    }
-
-    // copy the whole stuff
-
-    Ramp *srcRampPtr = srcRampPtr;
-    destRampPtr = NULL;
-    (*destStartRamp) = destRampPtr;
-
-
-    while(srcRampPtr!=NULL) {
-        if(destRampPtr==NULL) {
-            destRampPtr = malloc(sizeof(Ramp));
-            (*destStartRamp) = destRampPtr;
-        } else {
-            destRampPtr->next = malloc(sizeof(Ramp));
-            destRampPtr = destRampPtr->next;
-        }
-
-        destRampPtr->floor1 = srcRampPtr->floor1;
-        destRampPtr->field1 = srcRampPtr->field1;
-        destRampPtr->floor2 = srcRampPtr->floor2;
-        destRampPtr->field2 = srcRampPtr->field2;
-        destRampPtr->next = NULL;
-
-        srcRampPtr = srcRampPtr->next;
-    }
-
-    Victim *srcVictimPtr = srcStartVictim;
-    destVictimPtr = NULL;
-    (*destStartVictim) = destVictimPtr;
-
-    while(srcVictimPtr!=NULL)
-    {
-        if(destVictimPtr==NULL) {
-            destVictimPtr = malloc(sizeof(Victim));
-            (*destStartVictim) = destVictimPtr;
-        } else {
-            destVictimPtr->next = malloc(sizeof(Victim));
-            destVictimPtr = destVictimPtr->next;
-        }
-
-        destVictimPtr->dir = srcVictimPtr->dir;
-        destVictimPtr->floor = srcVictimPtr->floor;
-        destVictimPtr->field = srcVictimPtr->field;
-
-        srcVictimPtr = srcVictimPtr->next;
-    }
-    
-    Floor *srcFloorPtr = srcStartFloor;
-
-    destFloorPtr = malloc(sizeof(Floor));
-    (*destStartFloor) = destFloorPtr;
-
-    do {
-        if(srcFloorPtr == srcCurrentFloor)
-            (*destCurrentFloor) = destFloorPtr;
-
-        destFloorPtr->finished = srcFloorPtr->finished;
-        destFloorPtr->id = srcFloorPtr->id;
-        
-        Field *srcFieldPtr = srcFloorPtr->start;
-
-        Field *destFieldPtr = malloc(sizeof(Field));
-        destFloorPtr->start = destFieldPtr;
-
-        do {
-            if(srcFieldPtr == srcCurrentField)
-                (*destCurrentField) = destFieldPtr;
-
-            if(srcFieldPtr == srcCurrentFloor->lastField)
-                (*destCurrentFloor)->lastField = destFieldPtr;
-
-            destFieldPtr->x = srcFieldPtr->x;
-            destFieldPtr->y = srcFieldPtr->y;
-            destFieldPtr->type = srcFieldPtr->type;
-            destFieldPtr->score = 0;
-            destFieldPtr->neighbors[0] = NULL;
-            destFieldPtr->neighbors[1] = NULL;
-            destFieldPtr->neighbors[2] = NULL;
-            destFieldPtr->neighbors[3] = NULL;
-
-            if(srcFieldPtr->next != NULL) {
-                destFieldPtr->next = malloc(sizeof(Field));
-                destFieldPtr = destFieldPtr->next;
-            } else {
-                destFieldPtr->next = NULL;
-                destFloorPtr->end = destFieldPtr;
             }
 
-            srcFieldPtr = srcFieldPtr->next;
-        } while(srcFieldPtr != NULL);
+            currentScore--;
+        }
+    }
 
-        srcFieldPtr = srcFloorPtr->start;
-        destFieldPtr = destFloorPtr->start;
+    lastScoreInfo.max = -256;
 
-        do {
-            for(uint8_t dir=0; dir<4; dir++) {
-                if((srcFieldPtr->neighbors[dir]!=NULL) && (destFieldPtr->neighbors[dir]==NULL)) {
-                    Point targetPoint = {.x=srcFieldPtr->neighbors[dir]->x, .y=srcFieldPtr->neighbors[dir]->y};
-                    Field *targetDestField = destFieldPtr->next;
-                    while((targetDestField!=NULL) && !((targetDestField->x==targetPoint.x) && (targetDestField->y==targetPoint.y))) {
-                        targetDestField = targetDestField->next;
-                    }
-                    if(targetDestField!=NULL) {
-                        destFieldPtr->neighbors[dir]=targetDestField;
-                        targetDestField->neighbors[(dir+2)%4] = destFieldPtr;
-                    }
-                }
-            }
-            srcFieldPtr = srcFieldPtr->next;
-            destFieldPtr = destFieldPtr->next;
-        } while((srcFieldPtr!=NULL) && (destFieldPtr!=NULL));
+    for(short dir = 0; dir < 4; dir++) {
 
-        if(srcFloorPtr->next != NULL) {
-            destFloorPtr->next = malloc(sizeof(Floor));
-            destFloorPtr = destFloorPtr->next;
-        } else
-            destFloorPtr->next = NULL;
+        fieldPtr = mapGetAdjacentFieldGlobal(mapData.currentField->pos, dir);
+        int local = mapGlobalToLocalDirection(dir);
 
-        srcFloorPtr = srcFloorPtr->next;
-    } while(srcFloorPtr != NULL);
+        if((mapGetWall(mapData.currentField, dir) == WALL) || (fieldPtr == NULL)) {
+            lastScoreInfo.adjacentScores[local] = -1;
+        } else {
+            lastScoreInfo.adjacentScores[local] = fieldPtr->score;
+        }
+            
+        if(lastScoreInfo.adjacentScores[local] > lastScoreInfo.max)
+            lastScoreInfo.max = lastScoreInfo.adjacentScores[local];
 
+    }
+
+    lastScoreInfo.valid = true;
+}
+
+void mapCopy(Map* source, Map* destination) {
+
+    rgbBlink(64, 52, 130, 0, 300);
+
+    destination->heading = source->heading;
+
+    Floor* destinationFloorPtr = destination->headFloor;
+    Floor* sourceFloorPtr = source->headFloor;
+
+    while(destinationFloorPtr != NULL) {
+
+        Floor* next = destinationFloorPtr->next;
+        free(destinationFloorPtr->fieldArray);
+        free(destinationFloorPtr);
+        destinationFloorPtr = next;
+    }
+
+    while(sourceFloorPtr != NULL) {
+
+        if(destinationFloorPtr == NULL)
+            destinationFloorPtr = malloc(sizeof(Floor));
+        else {
+            destinationFloorPtr->next = malloc(sizeof(Floor));
+            destinationFloorPtr = destinationFloorPtr->next;
+        }
+
+        destinationFloorPtr->id         = sourceFloorPtr->id;
+        destinationFloorPtr->fieldArray = malloc(sizeof(Field) * MAP_MAX_FIELDS_PER_FLOOR);
+        destinationFloorPtr->fieldCount = sourceFloorPtr->fieldCount;
+        destinationFloorPtr->next       = NULL;
+
+        Field* destinationFieldPtr = NULL;
+        Field* sourceFieldPtr      = NULL;
+
+        for(short i = 0; i < destinationFloorPtr->fieldCount; i++) {
+
+            destinationFieldPtr = &destinationFloorPtr->fieldArray[i];
+            sourceFieldPtr      = &sourceFloorPtr->fieldArray[i];
+
+            destinationFieldPtr->pos     = sourceFieldPtr->pos;
+            destinationFieldPtr->floor   = sourceFieldPtr->floor;
+            destinationFieldPtr->walls   = sourceFieldPtr->walls;
+            destinationFieldPtr->visited = sourceFieldPtr->visited;
+            destinationFieldPtr->black   = sourceFieldPtr->black;
+            destinationFieldPtr->silver  = sourceFieldPtr->silver;
+            destinationFieldPtr->ramp    = sourceFieldPtr->ramp;
+            destinationFieldPtr->score   = sourceFieldPtr->score;
+
+            if(sourceFloorPtr->startField == sourceFieldPtr)
+                destinationFloorPtr->startField = destinationFieldPtr;
+            if(sourceFloorPtr->lastVisitedField == destinationFieldPtr)
+                destinationFloorPtr->lastVisitedField = destinationFieldPtr;
+            if(source->currentField == sourceFieldPtr)
+                destination->currentField = destinationFieldPtr;
+        }
+
+        if(source->headFloor == sourceFloorPtr)
+            destination->headFloor = destinationFloorPtr;
+        if(source->tailFloor == sourceFloorPtr);
+            destination->tailFloor = destinationFloorPtr;
+        if(source->currentFloor == sourceFloorPtr)
+            destination->currentFloor = destinationFloorPtr;
+
+        sourceFloorPtr = sourceFloorPtr->next;
+    }
+
+    Ramp* destinationRampPtr = destination->headRamp;
+    Ramp* sourceRampPtr = source->headRamp;
+
+    while(destinationRampPtr != NULL) {
+
+        Ramp* next = destinationRampPtr->next;
+        free(destinationRampPtr);
+        destinationRampPtr = next;
+    }
+
+    while(sourceRampPtr != NULL) {
+
+        if(destinationRampPtr == NULL)
+            destinationRampPtr = malloc(sizeof(Ramp));
+        else {
+            destinationRampPtr->next = malloc(sizeof(Ramp));
+            destinationRampPtr = destinationRampPtr->next;
+        }
+
+        destinationRampPtr->floor1 = sourceRampPtr->floor1;
+        destinationRampPtr->floor2 = sourceRampPtr->floor2;
+        destinationRampPtr->field1 = sourceRampPtr->field1;
+        destinationRampPtr->field2 = sourceRampPtr->field2;
+
+        sourceRampPtr = sourceRampPtr->next;
+    }
+
+    Victim* destinationVictimPtr = destination->headVictim;
+    Victim* sourceVictimPtr = source->headVictim;
+
+    while(destinationVictimPtr != NULL) {
+
+        Victim* next = destinationVictimPtr->next;
+        free(destinationVictimPtr);
+        destinationVictimPtr = next;
+    }
+
+    while(sourceVictimPtr != NULL) {
+
+        if(destinationVictimPtr == NULL)
+            destinationVictimPtr = malloc(sizeof(Victim));
+        else {
+            destinationVictimPtr->next = malloc(sizeof(Victim));
+            destinationVictimPtr = destinationVictimPtr->next;
+        }
+
+        destinationVictimPtr->floor     = sourceVictimPtr->floor;
+        destinationVictimPtr->field     = sourceVictimPtr->field;
+        destinationVictimPtr->direction = sourceVictimPtr->direction;
+        destinationVictimPtr->type      = sourceVictimPtr->type;
+
+        sourceVictimPtr = sourceVictimPtr->next;
+    }
+}
+
+void mapRestoreFromBackup() {
+
+    mapCopy(&bkupMapData, &mapData);
+    serialPrintInt(COM_MAP_RESET);
+    serialPrintNL();
+    mapSender();
 }
 
 void mapSender() {
-    Field *fieldPtr = currentFloor->start;
+
+    Field* fieldPtr = NULL;
+
+    serialPrintInt(COM_MAP_POSITION);
+    serialPrintNL();
 
     serialPrintNL();
-    serialPrintNL();
-    serialPrintInt(currentField->x);
-    serialPrintInt(currentField->y);
-    serialPrintInt(heading);
-    serialPrintInt(currentFloor->id);
+    serialPrintInt(mapData.currentField->pos.x);
+    serialPrintInt(mapData.currentField->pos.y);
+    serialPrintInt(mapData.heading);
     serialPrintNL();
 
-    do {
-        serialPrintInt(fieldPtr->x);
-        serialPrintInt(fieldPtr->y);
-        serialPrintInt(fieldPtr->type);
+    serialPrintInt(COM_MAP_SEND_START);
+    serialPrintNL();
+
+    for(short i = 0; i < mapData.currentFloor->fieldCount; i++) {
+
+        fieldPtr = &mapData.currentFloor->fieldArray[i];
+
+        serialPrintInt(fieldPtr->pos.x);
+        serialPrintInt(fieldPtr->pos.y);
+
+        if(fieldPtr->ramp)
+            serialPrintInt(4);
+        else if(fieldPtr->silver)
+            serialPrintInt(3);
+        else if(fieldPtr->black)
+            serialPrintInt(2);
+        else if(fieldPtr->visited)
+            serialPrintInt(1);
+        else
+            serialPrintInt(0);
+
         serialPrintInt(fieldPtr->score);
-        for(uint8_t dir=0; dir<4; dir++)
-            serialPrintInt(((fieldPtr->neighbors[dir]==NULL)?1:0));
-        serialPrintNL();
-        fieldPtr = fieldPtr->next;
-    } while(fieldPtr != NULL);
 
+        for(int dir = 0; dir < 4; dir++)
+            serialPrintInt(mapGetWall(fieldPtr, dir));
+
+        serialPrintNL();
+    }
+
+    serialPrintNL();
+
+    serialPrintInt(COM_MAP_SEND_STOP);
+    serialPrintNL();
+
+    serialPrintInt(COM_VICT_SEND_START);
+    serialPrintNL();
+
+    Victim* victimPtr = mapData.headVictim;
+
+    while(victimPtr != NULL) {
+
+        serialPrintInt(victimPtr->field.x);
+        serialPrintInt(victimPtr->field.y);
+        serialPrintInt(victimPtr->direction);
+        serialPrintNL();
+
+        victimPtr = victimPtr->next;
+    }
+
+    serialPrintInt(COM_VICT_SEND_STOP);
     serialPrintNL();
 }
