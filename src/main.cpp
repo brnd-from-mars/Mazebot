@@ -70,10 +70,21 @@ void servoRight() {
     TIMER_START;
 }
 
+// i is for the imaginary constant
+void servoI() {
+    TIMER_STOP;
+    lightMeasure();
+    rgbSet(128, 0, 0, 0);
+    delay(5000);
+    rgbOff(0);
+    TIMER_START;
+}
+
 bool lastMapRestoreBackupSwitchState;
+String input;
 
 void setup() {
-    Serial.begin(38400);
+    //Serial.begin(38400);
     Serial3.begin(38400);
 
     // init everything
@@ -93,6 +104,10 @@ void setup() {
     timerInit();
     delay(400);
 
+    input = "";
+
+    while(digitalRead(40) == LOW);
+
     // map
     mapInit();
 
@@ -102,13 +117,42 @@ void setup() {
     Serial3.println("START");
 
     lastMapRestoreBackupSwitchState = false;
+    Serial.begin(9600);
 }
+
+void(* resetFunc) (void) = 0;
 
 void loop() {
     TIMER_STOP;
-    rampInterrupt();
+    rampLoop();
     melexisInterrupt();
     TIMER_START;
+
+    Serial.println(darknessRight);
+
+    if(Serial3.available() > 0) {
+        //char* input = Serial3.readString().c_str();
+
+        char tmp = Serial3.read();
+        if(tmp == '\r' || tmp == '\n') {
+            Serial.println("          " + input);
+
+            int code = input.toInt();
+            if(code != 0x000) {
+
+                if((code & 0xF00) == 0xD00) {
+                    if(((code & 0x0F0) == 0x000) || ((code & 0x0F0) == 0x010)) {
+                        victimSetVisual(code);
+                    }
+                }
+            }
+
+            input = "";
+        } else {
+            input += tmp;
+        }
+
+    }
 
     if(toggleswitch[1].value) {
 
@@ -132,10 +176,9 @@ void loop() {
         if(lastMapRestoreBackupSwitchState) {
 
             mapRestoreFromBackup();
-            Serial.println(255);
-            mapSender();
             encoderReset();
             driveSMInit();
+            rampInit();
             lastAction = NAVIGATION_ACTION_RESTORE_BKUP;
 
         }
@@ -146,15 +189,43 @@ void loop() {
 
     }
 
-    rgbUpdate();
+    if(!toggleswitch[2].value && !toggleswitch[1].value && !toggleswitch[0].value) {
+        resetFunc();
+    //     mapReset();
+    //     driveSMInit();
+    //     encoderInit();
+    //     lightInit();
+    //     melexisInit();
+    //     motorInit();
+    //     navigationInit();
+    //     rampInit();
+    //     switchInit();
+    //     victimInit();
 
-    if(victimSetKitdropper == 1) {
-        servoRight();
-        victimSetKitdropper = 0;
+    //     mapSender();
     }
 
-    if(victimSetKitdropper == -1) {
+    rgbUpdate();
+
+    while(victimKitdropperLeft > 0) {
+        motorBrake();
+        rgbSet(128, 0, 0, 0);
         servoLeft();
-        victimSetKitdropper = 0;
+        rgbOff(0);
+        victimKitdropperLeft--;
+    }
+
+    while(victimKitdropperRight > 0) {
+        motorBrake();
+        rgbSet(128, 0, 0, 0);
+        servoRight();
+        rgbOff(0);
+        victimKitdropperRight--;
+    }
+
+    while(victimKitdropperi > 0) {
+        motorBrake();
+        servoI();
+        victimKitdropperi--;
     }
 }

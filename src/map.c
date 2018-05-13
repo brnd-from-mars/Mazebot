@@ -34,7 +34,7 @@ void mapInit() {
     lastScoreInfo.valid      = false;
 
     mapUpdate();
-    //mapCopy(&mapData, &bkupMapData); // just for testing
+    //mapCopy(&mapData, &bkupMapData); // just for training
 }
 
 void mapUpdate() {
@@ -168,11 +168,14 @@ Ramp* mapCreateRamp() {
 
 Victim* mapCreateVictim(short localDir, uint8_t type) {
 
+    if(rampState != 0)
+        return NULL;
+
     short global = mapLocalToGlobalDirection(localDir);
 
     Point field = mapData.currentField->pos;
 
-    if(getForwardProcess() == 1) {
+    if(getForwardProcess(0.7) == 1) {
         field = mapGetAdjacentPositionGlobal(field, mapData.heading);
     } else {
         global += getRotationProcess();
@@ -285,15 +288,33 @@ uint8_t mapGetWall(Field* field, short dir) {
     return (((bool) (field->walls & (1 << dir))) ? WALL : NO_WALL);
 }
 
-void mapRotate(short amount) {
+bool mapRotate(short amount, bool verify) {
 
     mapData.heading += amount;
     mapData.heading = mapData.heading % 4;
-
     if(mapData.heading < 0)
         mapData.heading += 4;
 
-    mapUpdate();
+    if((mapData.currentField->walls == getWallData(mapData.heading)) || !verify) {
+        mapUpdate();
+        return true;
+    }
+
+    // something wen't wrong during rotation
+    // -> logical inconsistency
+    // -> map inconsistency    
+    // -> speed bumper
+
+    mapData.heading -= amount;
+    mapData.heading = mapData.heading % 4;
+    if(mapData.heading < 0)
+        mapData.heading += 4;
+
+    if(mapData.currentField->walls == getWallData(mapData.heading)) {
+        mapUpdate();
+    }
+
+    return false;
 }
 
 void mapForward(bool update) {
@@ -332,7 +353,13 @@ void mapChangeFloor(Ramp* ramp) {
 
 void mapSetRamp() {
 
-    mapForward(false);
+    if(getForwardProcess(0.5) == 1) {
+        mapData.currentFloor->fieldCount--;
+        mapData.currentField->ramp = 1;
+        mapData.currentField->walls &= ~(1 << mapData.heading);
+    } else {
+        mapForward(false);
+    }
 
     mapData.currentField->visited = 1;
 
@@ -354,11 +381,6 @@ void mapSetRamp() {
     }
 
     // map is now pointing to final floor to the last tile on the ramp
-
-    serialPrintNL();
-    serialPrintInt(255);
-    serialPrintNL();
-    mapSender();
 }
 
 void mapFinishRamp() {
@@ -373,13 +395,16 @@ void mapFinishRamp() {
 
 int8_t mapGetVictimType(short dir) {
 
+    if(rampState != 0)
+        return -1;
+
     Victim* victimPtr = mapData.headVictim;
 
     short global = mapLocalToGlobalDirection(dir);
 
     Point field = mapData.currentField->pos;
 
-    if(getForwardProcess() == 1) {
+    if(getForwardProcess(0.7) == 1) {
         field = mapGetAdjacentPositionGlobal(field, mapData.heading);
     } else {
         global += getRotationProcess();
@@ -499,7 +524,7 @@ void mapEvaluateScores() {
 
 void mapCopy(Map* source, Map* destination) {
 
-    rgbBlink(64, 52, 130, 0, 300);
+    rgbBlink(64, 52, 130, 0, 50);
 
     destination->heading = source->heading;
 
@@ -633,10 +658,10 @@ void mapSender() {
     serialPrintInt(COM_MAP_POSITION);
     serialPrintNL();
 
-    serialPrintNL();
     serialPrintInt(mapData.currentField->pos.x);
     serialPrintInt(mapData.currentField->pos.y);
     serialPrintInt(mapData.heading);
+    serialPrintInt(mapData.currentFloor->id);
     serialPrintNL();
 
     serialPrintInt(COM_MAP_SEND_START);
@@ -668,8 +693,6 @@ void mapSender() {
         serialPrintNL();
     }
 
-    serialPrintNL();
-
     serialPrintInt(COM_MAP_SEND_STOP);
     serialPrintNL();
 
@@ -690,4 +713,39 @@ void mapSender() {
 
     serialPrintInt(COM_VICT_SEND_STOP);
     serialPrintNL();
+}
+
+void mapDelete(Map* map) {
+
+    Floor* floorPtr = map->headFloor;
+    while(floorPtr != NULL) {
+
+        Floor* next = floorPtr->next;
+        free(floorPtr->fieldArray);
+        free(floorPtr);
+        floorPtr = next;
+    }
+
+    Ramp* rampPtr = map->headRamp;
+    while(rampPtr != NULL) {
+
+        Ramp* next = rampPtr->next;
+        free(rampPtr);
+        rampPtr = next;
+    }
+
+    Victim* victimPtr = map->headVictim;
+    while(victimPtr != NULL) {
+
+        Victim* next = victimPtr->next;
+        free(victimPtr);
+        victimPtr = next;
+    }
+}
+
+void mapReset() {
+
+    mapDelete(&mapData);
+    mapDelete(&bkupMapData);
+    mapInit();
 }

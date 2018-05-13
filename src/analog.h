@@ -31,9 +31,15 @@ void analogInit();
 
 void analogInterrupt();
 
+void analogVerify();
+
 bool entireWall(uint8_t dir, uint16_t maxDistance);
 
 uint8_t getWallData(uint8_t hdg);
+
+int8_t obstacleInFront();
+
+bool sharpBlockedFront(int distance);
 
 
 #endif

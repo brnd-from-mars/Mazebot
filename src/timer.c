@@ -28,6 +28,7 @@ ISR( TIMER5_COMPA_vect ) {
     loopCnt++;
     analogInterrupt();
     switchInterrupt();
+    rampInterrupt();
     // encoderInterrupt();
     switch(loopCnt) {
 #ifdef BLACK_RECOGNITION
@@ -38,7 +39,7 @@ ISR( TIMER5_COMPA_vect ) {
         lightMeasure();
         break;
 #endif
-    case 50:
+    case 30:
         loopCnt = 0;
         break;
     }

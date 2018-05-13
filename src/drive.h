@@ -9,14 +9,13 @@
 #include <math.h>
 
 
-
 void driveReset();
 
 void drive(int16_t baseSpeed, float kP, float kI, float kD);
 
 void rotate(int16_t speed);
 
-bool correctRotationPosition(bool start);
+bool correctRotationPosition(bool start, bool rot);
 
 
 #endif

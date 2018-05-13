@@ -9,6 +9,7 @@
 #include "light.h"
 #include "rgb.h"
 #include "driveStateMachine.h"
+#include "ramp.h"
 
 
 #define WALL 1
@@ -123,7 +124,7 @@ void mapSetWall(Field* field, short dir, uint8_t state);
 
 uint8_t mapGetWall(Field* field, short dir);
 
-void mapRotate(short amount);
+bool mapRotate(short amount, bool verify);
 
 void mapForward(bool update);
 
@@ -148,6 +149,10 @@ void mapCopy(Map* source, Map* destination);
 void mapRestoreFromBackup();
 
 void mapSender();
+
+void mapDelete(Map* map);
+
+void mapReset();
 
 
 #endif

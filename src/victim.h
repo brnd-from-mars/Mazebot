@@ -15,7 +15,11 @@ int8_t victimState;
 
 uint8_t victimPosition;
 
-int8_t victimSetKitdropper;
+uint8_t victimKitdropperLeft;
+
+uint8_t victimKitdropperRight;
+
+uint8_t victimKitdropperi; // i is for the imaginary constant
 
 uint8_t victimCounter;
 
@@ -25,5 +29,6 @@ void victimInit();
 
 void victimRecognition();
 
+void victimSetVisual(int code);
 
 #endif

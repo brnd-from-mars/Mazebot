@@ -15,6 +15,8 @@ bool enableNavigation;
 
 bool blackEscaping;
 
+int stuckOnBumper;
+
 int8_t lastRampState;
 
 int8_t lastAction;

@@ -13,14 +13,22 @@ void drive(int16_t baseSpeed, float kP, float kI, float kD) {
     int errorP = 0;
     int errorD = 0;
 
-    int targetWalldistance = 250;
+    int targetWallDistance = 0;
+    int obstacle = obstacleInFront();
 
-    if(entireWall(RIGHT, 200)) {
-        errorP = targetWalldistance - (int)(sharp[3].value);
+    if((obstacle == 1) && entireWall(LEFT, 180) && !entireWall(RIGHT, 200))
+        targetWallDistance = 500;
+    else if((obstacle == -1) && entireWall(RIGHT, 180) && !entireWall(LEFT, 200))
+        targetWallDistance = 500;
+    else
+        targetWallDistance = 250;
+
+    if(entireWall(RIGHT, 190)) {
+        errorP = targetWallDistance - (int)(sharp[3].value);
         errorI = errorI + errorP;
         errorD = sharp[5].value - sharp[3].value;
-    } else if(entireWall(LEFT, 200)) {
-        errorP = -(targetWalldistance - (int)(sharp[4].value));
+    } else if(entireWall(LEFT, 190)) {
+        errorP = -(targetWallDistance - (int)(sharp[4].value));
         errorI = errorI + errorP;
         errorD = -(sharp[6].value - sharp[4].value);
     } else {
@@ -36,8 +44,8 @@ void rotate(int16_t speed) {
     motorSetRightSpeed(-speed);
 }
 
-bool correctRotationPosition(bool start) {
-    uint16_t walllimit = 100;
+bool correctRotationPosition(bool start, bool rot) {
+    uint16_t walllimit = 175;
 
     if(start) {
         correctionStart = millis();
@@ -84,9 +92,9 @@ bool correctRotationPosition(bool start) {
                 rightSpeed += (int16_t)(trunc(1.2*errorPos/referenceWallsPos));
             }
 
-            if(referenceWallsRot != 0) {
-                leftSpeed += (int16_t)(trunc(2.0*errorRot/referenceWallsRot));
-                rightSpeed -= (int16_t)(trunc(2.0*errorRot/referenceWallsRot));
+            if(referenceWallsRot != 0 && rot) {
+                leftSpeed += (int16_t)(trunc(3.0*errorRot/referenceWallsRot));
+                rightSpeed -= (int16_t)(trunc(3.0*errorRot/referenceWallsRot));
             }
 
             if(abs(leftSpeed)<40 && abs(rightSpeed)<40) {

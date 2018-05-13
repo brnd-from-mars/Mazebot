@@ -3,7 +3,9 @@
 
 void victimInit() {
     victimState = -1;
-    victimSetKitdropper = 0;
+    victimKitdropperLeft = 0;
+    victimKitdropperRight = 0;
+    victimKitdropperi = 0;
     victimCounter = 0;
 }
 
@@ -33,6 +35,7 @@ void victimRecognition() {
                 enableNavigation = true;
                 victimStart = 0;
                 victimState = -1;
+                victimCounter = 100;
             }
             TIMER_START;
             break;
@@ -41,9 +44,9 @@ void victimRecognition() {
             mapCreateVictim(((victimPosition == 0) ? RIGHT : LEFT), 3);
             rgbSet(128, 0, 0, 0);
             if(victimPosition == 0)
-                victimSetKitdropper = 1;
+                victimKitdropperRight = 1;
             if(victimPosition == 1)
-                victimSetKitdropper = -1;
+                victimKitdropperLeft = 1;
             victimStart = millis();
             victimState = 2;
             break;
@@ -51,6 +54,7 @@ void victimRecognition() {
         case 2:
             if(victimStart+5000 <= millis())
                 victimState = 3;
+            rgbSet(128, 0, 0, 0);
             break;
         // finish victim handling
         case 3:
@@ -62,4 +66,36 @@ void victimRecognition() {
             break;
         }
     }
+}
+
+void victimSetVisual(int code) {
+
+    uint8_t* kitdropper = NULL;
+
+    if(((code & 0x0F0) == 0x000) & (victimKitdropperLeft == 0)) {
+        kitdropper = &victimKitdropperLeft;
+    }
+
+    if(((code & 0x0F0) == 0x010) & (victimKitdropperRight == 0)) {
+        kitdropper = &victimKitdropperRight;
+    }
+
+    if(kitdropper == NULL)
+        return;
+
+    switch(code & 0x00F) {
+    case 0:
+        *kitdropper = 2;
+        break;
+    case 1:
+        *kitdropper = 1;
+        break;
+    case 2:
+        victimKitdropperi = 1;
+        break;
+    case 3:
+        *kitdropper = 0;
+        break;
+    }
+
 }

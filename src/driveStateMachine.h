@@ -7,7 +7,11 @@
 #include "drive.h"
 #include "encoder.h"
 #include "motor.h"
+#include "ramp.h"
 
+int obstalceInFrontDetected;
+
+bool moreThanHalfDriven;
 
 int8_t rotateState;
 
@@ -17,9 +21,13 @@ int targetEncoderValue;
 
 long cameraStart;
 
+long fallbackVerifyTimer;
+
+int rotationSpeed;
+
 void driveSMInit();
 
-void startRotate(int angle);
+void startRotate(int angle, int speed);
 
 void startForwardEnc(int distance);
 
@@ -29,11 +37,13 @@ void processRotate();
 
 void processForward();
 
+void sendScanningCommand();
+
 int distanceCoveredEnc();
 
 int getRotationProcess();
 
-int getForwardProcess();
+int getForwardProcess(float threshold);
 
 
 #endif
